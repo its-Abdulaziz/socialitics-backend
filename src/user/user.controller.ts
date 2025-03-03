@@ -8,6 +8,7 @@ import { GetUserDto } from './dto/get-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  
   @Post()
   create(@Body() body: CreateUserDto) {
     return this.userService.create(body);
