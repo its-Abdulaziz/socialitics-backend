@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { GetUserDto } from './dto/get-user.dto';
 
 @Injectable()
 export class UserService {
@@ -26,8 +27,8 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(body: GetUserDto) {
+    return this.userRepository.exists({ where: { firebaseUID: body.firebaseUID } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
