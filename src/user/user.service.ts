@@ -19,12 +19,14 @@ export class UserService {
         firebaseUID: createUserDto.firebaseUID,
         email: createUserDto.email,
         name: createUserDto.name,
+        image: createUserDto.image,
+        bio: createUserDto.bio
       }
     );
   }
 
   findAll() {
-    return `This action returns all user`;
+    return this.userRepository.find();
   }
 
   findOne(firebaseUID: string) {
