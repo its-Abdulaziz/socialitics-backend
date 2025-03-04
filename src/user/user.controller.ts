@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUserDto } from './dto/get-user.dto';
+import { query } from 'express';
 
 @Controller('api/user')
 export class UserController {
@@ -19,8 +20,8 @@ export class UserController {
   }
 
   @Get()
-  findOne(@Body() body: GetUserDto) {
-    return this.userService.findOne(body);
+  findOne(@Query() query: GetUserDto) {
+    return this.userService.findOne(query.firebaseUID);
   }
 
   @Patch(':id')

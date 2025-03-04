@@ -27,8 +27,8 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  findOne(body: GetUserDto) {
-    return this.userRepository.exists({ where: { firebaseUID: body.firebaseUID } });
+  findOne(firebaseUID: string) {
+    return this.userRepository.findOne({ where: { firebaseUID } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
