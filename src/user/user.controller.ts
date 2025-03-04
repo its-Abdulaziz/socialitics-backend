@@ -20,8 +20,10 @@ export class UserController {
   }
 
   @Get()
-  findOne(@Query() query: GetUserDto) {
-    return this.userService.findOne(query.firebaseUID);
+  async findOne(@Query() query: GetUserDto) {
+    
+    const userExist = await this.userService.findOne(query.firebaseUID);
+    return {isExist: userExist};
   }
 
   @Patch(':id')

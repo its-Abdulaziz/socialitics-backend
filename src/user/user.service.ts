@@ -28,7 +28,8 @@ export class UserService {
   }
 
   findOne(firebaseUID: string) {
-    return this.userRepository.findOne({ where: { firebaseUID } });
+    console.log(this.userRepository.exists({ where: { firebaseUID } }))
+    return this.userRepository.exists({ where: { firebaseUID } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
