@@ -4,12 +4,16 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { query } from 'express';
+import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
+import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 
+@UseGuards(FirebaseAuthGuard)
 @Controller('api/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
+  
   @Post()
+  @NoAuth()
   create(@Body() body: CreateUserDto) {
     return this.userService.create(body);
   }
@@ -20,8 +24,8 @@ export class UserController {
   }
 
   @Get()
+  @NoAuth()
   async findOne(@Query() query: GetUserDto) {
-    
     const userExist = await this.userService.findOne(query.firebaseUID);
     return {isExist: userExist};
   }
