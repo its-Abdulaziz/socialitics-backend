@@ -7,6 +7,7 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT ?? 3000;
+  
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,7 +21,10 @@ async function bootstrap() {
   app.use(express.json());
   app.use(bodyParser.json()); // Parse JSON bodies
   app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
+  app.enableCors();
+
   await app.listen(PORT);
+  
   console.log(`Server is running on: ${await app.getUrl()} and PORT: ${PORT} ${process.env.ENV}`);
 
 }

@@ -19,16 +19,19 @@ export class UserService {
         firebaseUID: createUserDto.firebaseUID,
         email: createUserDto.email,
         name: createUserDto.name,
+        image: createUserDto.image,
+        bio: createUserDto.bio
       }
     );
   }
 
   findAll() {
-    return `This action returns all user`;
+    return this.userRepository.find();
   }
 
-  findOne(body: GetUserDto) {
-    return this.userRepository.exists({ where: { firebaseUID: body.firebaseUID } });
+  findOne(firebaseUID: string) {
+    console.log(this.userRepository.exists({ where: { firebaseUID } }))
+    return this.userRepository.exists({ where: { firebaseUID } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
