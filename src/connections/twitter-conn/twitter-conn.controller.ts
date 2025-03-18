@@ -4,7 +4,7 @@ import { CreateTwitterConnDto } from './dto/create-twitter-conn.dto';
 import { UpdateTwitterConnDto } from './dto/update-twitter-conn.dto';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 
-@UseGuards(FirebaseAuthGuard)
+// @UseGuards(FirebaseAuthGuard)
 @Controller('api/connections/twitter')
 
 export class TwitterConnController {
@@ -21,8 +21,8 @@ export class TwitterConnController {
     return this.twitterConnService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') firebaseUID: string) {
+  @Get(':firebaseUID')
+  findOne(@Param('firebaseUID') firebaseUID: string) {
     return this.twitterConnService.findOne(firebaseUID);
   }
 
@@ -31,8 +31,8 @@ export class TwitterConnController {
     return this.twitterConnService.update(+id, updateTwitterConnDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.twitterConnService.remove(+id);
+  @Delete(':firebaseUID')
+  remove(@Param('firebaseUID') firebaseUID: string, @Request() req) {
+    return this.twitterConnService.remove(firebaseUID, req);
   }
 }

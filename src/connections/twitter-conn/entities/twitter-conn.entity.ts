@@ -1,5 +1,6 @@
-import { Column, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
+@Entity()
 export class TwitterConn {
 
 @PrimaryColumn()
@@ -18,10 +19,10 @@ name: string
 image: string
 
 @Column()
-access_token: string
+accessToken: string
 
 @Column()
-refresh_token: string
+refreshToken: string
 
 @Column()
 validUntil: Date
