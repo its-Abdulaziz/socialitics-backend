@@ -6,11 +6,11 @@ export class TwitterConn {
 @PrimaryColumn()
 firebaseUID: string;
 
-@Column()
-userName: string;
+@PrimaryColumn()
+twitterID: string;
 
 @Column()
-twitterID: string;
+userName: string;
 
 @Column()
 name: string
