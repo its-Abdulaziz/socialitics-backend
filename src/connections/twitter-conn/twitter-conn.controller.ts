@@ -4,7 +4,7 @@ import { CreateTwitterConnDto } from './dto/create-twitter-conn.dto';
 import { UpdateTwitterConnDto } from './dto/update-twitter-conn.dto';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 
-// @UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard)
 @Controller('api/connections/twitter')
 
 export class TwitterConnController {

@@ -14,7 +14,6 @@ export class TwitterConnService {
   ) {}
   
   async create(body: CreateTwitterConnDto, req: any) {
-    console.log(body);
     const response = await axios.post(
       'https://api.x.com/2/oauth2/token',
       new URLSearchParams({
