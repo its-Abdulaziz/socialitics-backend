@@ -16,10 +16,6 @@ export class TwitterConnController {
     return this.twitterConnService.create(data, req);
   }
 
-  @Get()
-  findAll() {
-    return this.twitterConnService.findAll();
-  }
 
   @Get(':firebaseUID')
   findOne(@Query('firebaseUID') firebaseUID: string) {
