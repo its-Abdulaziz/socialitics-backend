@@ -14,6 +14,11 @@ export class TwitterConnService {
   ) {}
   
   async create(body: CreateTwitterConnDto, req: any) {
+    const isExist: any = await this.findOne(req.currentUser.firebaseUID)
+    console.log(isExist)
+    if(isExist.isExist == true) {
+      throw new HttpException("You already connected with Twitter, delete the exist one first", HttpStatus.BAD_REQUEST)
+    }
     const response = await axios.post(
       'https://api.x.com/2/oauth2/token',
       new URLSearchParams({
@@ -63,7 +68,7 @@ export class TwitterConnService {
       }
     );
   }
-
+ 
   findAll() {
     return `This action returns all twitterConn`;
   }
@@ -102,7 +107,7 @@ export class TwitterConnService {
     return `This action updates a #${id} twitterConn`;
   }
 
-  remove(firebaseUID: string, req) {
+  async remove(firebaseUID: string, req) {
     if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
     }
