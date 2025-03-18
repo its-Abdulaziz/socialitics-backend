@@ -5,11 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TwitterConn } from './entities/twitter-conn.entity';
 import axios from 'axios';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class TwitterConnService {
   constructor(
     @InjectRepository(TwitterConn) private readonly twitterConnRepository: Repository<TwitterConn>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     
   ) {}
   
@@ -54,7 +56,8 @@ export class TwitterConnService {
       );
     });
 
-    return this.twitterConnRepository.save(
+    try {
+    const res = await this.twitterConnRepository.save(
       {
         firebaseUID: req.currentUser.firebaseUID,
         accessToken: response.data.access_token,
@@ -68,7 +71,17 @@ export class TwitterConnService {
         createdAt: new Date()
       }
     );
+    await this.userRepository.update(req.currentUser.firebaseUID, {
+      TwitterUserName: accountInfo.data.data.username})
+    return res;
   }
+  catch (error) {
+    throw new HttpException(
+      `Error updating database: ${error.response?.data?.error_description}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
  
   findAll() {
     return `This action returns all twitterConn`;
