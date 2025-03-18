@@ -65,6 +65,7 @@ export class TwitterConnService {
         name: accountInfo.data.data.name,
         image: accountInfo.data.data.profile_image_url,
         twitterID: accountInfo.data.data.id,
+        createdAt: new Date()
       }
     );
   }

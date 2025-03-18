@@ -30,4 +30,7 @@ validUntil: Date
 @Column()
 scope: string
 
+@Column()
+createdAt: Date
+
 }
