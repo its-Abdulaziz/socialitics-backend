@@ -25,11 +25,15 @@ export class UserService {
     );
   }
 
+  findOne(firebaseUID: string) {
+    return this.userRepository.findOne({ where: { firebaseUID } });
+  }
+
   findAll() {
     return this.userRepository.find();
   }
 
-  findOne(firebaseUID: string) {
+  checkExist(firebaseUID: string) {
     console.log(this.userRepository.exists({ where: { firebaseUID } }))
     return this.userRepository.exists({ where: { firebaseUID } });
   }
