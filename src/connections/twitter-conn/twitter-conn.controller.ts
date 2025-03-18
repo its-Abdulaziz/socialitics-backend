@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { TwitterConnService } from './twitter-conn.service';
 import { CreateTwitterConnDto } from './dto/create-twitter-conn.dto';
 import { UpdateTwitterConnDto } from './dto/update-twitter-conn.dto';
@@ -22,7 +22,7 @@ export class TwitterConnController {
   }
 
   @Get(':firebaseUID')
-  findOne(@Param('firebaseUID') firebaseUID: string) {
+  findOne(@Query('firebaseUID') firebaseUID: string) {
     return this.twitterConnService.findOne(firebaseUID);
   }
 
@@ -32,7 +32,7 @@ export class TwitterConnController {
   }
 
   @Delete(':firebaseUID')
-  remove(@Param('firebaseUID') firebaseUID: string, @Request() req) {
+  remove(@Query('firebaseUID') firebaseUID: string, @Request() req) {
     return this.twitterConnService.remove(firebaseUID, req);
   }
 }

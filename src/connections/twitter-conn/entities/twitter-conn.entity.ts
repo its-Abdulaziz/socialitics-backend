@@ -30,7 +30,7 @@ validUntil: Date
 @Column()
 scope: string
 
-@Column()
+@Column({ nullable: true })
 createdAt: Date
 
 }
