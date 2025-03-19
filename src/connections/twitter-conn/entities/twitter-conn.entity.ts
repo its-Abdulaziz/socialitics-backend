@@ -1,15 +1,16 @@
-import { Column, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
+@Entity()
 export class TwitterConn {
 
 @PrimaryColumn()
 firebaseUID: string;
 
 @Column()
-userName: string;
+twitterID: string;
 
 @Column()
-twitterID: string;
+userName: string;
 
 @Column()
 name: string
@@ -18,15 +19,18 @@ name: string
 image: string
 
 @Column()
-access_token: string
+accessToken: string
 
 @Column()
-refresh_token: string
+refreshToken: string
 
 @Column()
 validUntil: Date
 
 @Column()
 scope: string
+
+@Column({ nullable: true })
+createdAt: Date
 
 }

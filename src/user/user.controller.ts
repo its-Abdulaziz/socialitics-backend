@@ -23,10 +23,16 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('/details')
+  @NoAuth()
+  findOne(@Query() query: GetUserDto) {
+    return this.userService.findOne(query.firebaseUID);
+  }
+
   @Get()
   @NoAuth()
-  async findOne(@Query() query: GetUserDto) {
-    const userExist = await this.userService.findOne(query.firebaseUID);
+  async checkExist(@Query() query: GetUserDto) {
+    const userExist = await this.userService.checkExist(query.firebaseUID);
     return {isExist: userExist};
   }
 
