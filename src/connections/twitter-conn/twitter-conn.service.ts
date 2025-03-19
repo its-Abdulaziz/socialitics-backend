@@ -121,15 +121,18 @@ export class TwitterConnService {
     return `This action updates a #${id} twitterConn`;
   }
 
-  async remove(firebaseUID: string, req) {
+  async remove(firebaseUID: string, req: any) {
     if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
     }
     try {
-      return this.twitterConnRepository.delete({ firebaseUID })
+      const res = await this.twitterConnRepository.delete({ firebaseUID })
+      await this.userRepository.update(firebaseUID , 
+        { TwitterUserName: null })
+      return res
     }
     catch (error) {
-      throw new HttpException(`Error removing data: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR
+      throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
