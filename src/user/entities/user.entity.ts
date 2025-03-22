@@ -26,4 +26,10 @@ export class User {
 
     @Column({ nullable: true })
     TwitterUserName: string;
+
+    @Column({ nullable: true })
+    FaceBookUserName: string;
+
+    @Column({ nullable: true })
+    InstagramUserName: string;
 }

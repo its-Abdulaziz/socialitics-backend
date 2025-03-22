@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppDataSource } from './data-source';
 import { TwitterConnModule } from './connections/twitter-conn/twitter-conn.module';
+import { InstagramConnModule } from './connections/instagram-conn/instagram-conn.module';
 
 @Module({
   imports: [ConfigModule.forRoot(),
@@ -15,7 +16,9 @@ import { TwitterConnModule } from './connections/twitter-conn/twitter-conn.modul
       }),
     }),
     UserModule, 
-    TwitterConnModule],
+    TwitterConnModule,
+    InstagramConnModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
