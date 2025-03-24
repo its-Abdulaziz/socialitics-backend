@@ -32,4 +32,7 @@ export class User {
 
     @Column({ nullable: true })
     InstagramUserName: string;
+
+    @Column({ nullable: true })
+    TiktokUserName: string;
 }

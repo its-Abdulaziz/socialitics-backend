@@ -25,6 +25,6 @@ export class AppController {
   @Get()
   hello() {
 
-    return 'helloo v1';
+    return 'ًWelcome to Socialitics Backend. v1';
   }
 }
