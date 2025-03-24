@@ -22,4 +22,9 @@ export class AppController {
       };
     }
   }
+  @Get()
+  hello() {
+
+    return 'helloo v1';
+  }
 }
