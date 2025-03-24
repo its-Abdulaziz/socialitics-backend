@@ -14,7 +14,18 @@ export class TwitterConnService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     
   ) {}
-  
+  //TO DO: refresh acces token, access token valid for 2 hours only
+  /*
+  const response = await axios.post('https://api.x.com/2/oauth2/token', new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: 'YOUR_REFRESH_TOKEN',
+    client_id: 'YOUR_CLIENT_ID',
+  }), {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  });
+*/
   async create(body: CreateTwitterConnDto, req: any) {
     const isExist: any = await this.findOne(req.currentUser.firebaseUID)
     console.log(isExist)
