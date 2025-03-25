@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppDataSource } from './data-source';
 import { TwitterConnModule } from './connections/twitter-conn/twitter-conn.module';
 import { InstagramConnModule } from './connections/instagram-conn/instagram-conn.module';
+import { FacebookConnModule } from './connections/facebook-conn/facebook-conn.module';
 
 @Module({
   imports: [ConfigModule.forRoot(),
@@ -18,6 +19,7 @@ import { InstagramConnModule } from './connections/instagram-conn/instagram-conn
     UserModule, 
     TwitterConnModule,
     InstagramConnModule,
+    FacebookConnModule,
   ],
   controllers: [AppController],
   providers: [AppService],
