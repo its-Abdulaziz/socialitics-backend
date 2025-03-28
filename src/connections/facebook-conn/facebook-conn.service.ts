@@ -40,7 +40,7 @@ export class FacebookConnService {
       );
     });
 
-    const accountInfo = await axios.get('https://graph.facebook.com/v22.0/me/feed', {
+    const accountInfo = await axios.get('https://graph.facebook.com/v22.0/me/', {
       params: {
         access_token: response.data.access_token,
         fields: 'id,name',
@@ -52,7 +52,7 @@ export class FacebookConnService {
         HttpStatus.BAD_REQUEST
       );
     });
-
+    console.log(accountInfo.data)
     try {
     const res = await this.facebookConnRepository.save(
       {
