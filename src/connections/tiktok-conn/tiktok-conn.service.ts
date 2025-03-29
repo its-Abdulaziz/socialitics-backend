@@ -69,7 +69,7 @@ export class TiktokConnService {
         }
       );
       await this.userRepository.update(req.currentUser.firebaseUID, {
-        TiktokUserName: accountInfo.data.data.username})
+        TiktokUserName: accountInfo.data.data.user.username})
       return res;
     }
     catch (error) {
