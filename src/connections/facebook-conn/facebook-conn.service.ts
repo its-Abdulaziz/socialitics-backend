@@ -63,8 +63,10 @@ export class FacebookConnService {
       );
     });
 
-    const firstPage = pageInfo.data[0];
+    const pageInfoData = JSON.stringify(pageInfo.data, null, 2)
+    const firstPage = JSON.parse(pageInfoData)[0];
 
+    console.log(firstPage)
     try {
     const res = await this.facebookConnRepository.save(
       {
