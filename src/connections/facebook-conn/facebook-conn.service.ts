@@ -63,16 +63,15 @@ export class FacebookConnService {
       );
     });
 
-    const pageInfoData = JSON.stringify(pageInfo.data, null, 2)
-    const firstPage = JSON.parse(pageInfoData)[0];
-
+    const firstPage = pageInfo.data?.data[0];
     console.log(firstPage)
     try {
     const res = await this.facebookConnRepository.save(
       {
         firebaseUID: req.currentUser.firebaseUID,
         accessToken: response.data.access_token,
-        validUntil: new Date(Date.now() + response.data.expires_in * 1000),
+        //access token never expires
+        validUntil: new Date(Date.now() + 5184000* 1000),
         name: accountInfo.data.name,
         facebookID: accountInfo.data.id,
         createdAt: new Date(),
@@ -86,7 +85,9 @@ export class FacebookConnService {
     return res;
   }
   catch (error) {
+    console.log(error)
     throw new HttpException(
+      
       `Error updating database: ${error.response?.data?.error_description}`,
       HttpStatus.INTERNAL_SERVER_ERROR
     );
