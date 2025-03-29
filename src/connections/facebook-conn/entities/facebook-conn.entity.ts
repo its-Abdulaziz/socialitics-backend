@@ -18,6 +18,15 @@ export class FacebookConn {
     @Column()
     validUntil: Date;
 
+    @Column()
+    pageName: string;
+
+    @Column()
+    pageAccessToken: string;
+
+    @Column()
+    pageID: string;
+
     @Column({ nullable: true })
     createdAt: Date;
 }

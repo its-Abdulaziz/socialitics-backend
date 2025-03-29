@@ -53,6 +53,18 @@ export class FacebookConnService {
       );
     });
     console.log(accountInfo.data)
+
+    const pageInfo = await axios.get(`https://graph.facebook.com/v22.0/me/accounts?access_token=${response.data.access_token}`)
+    .catch(error => {
+      console.error('page access token failed:', error.response?.data);
+      throw new HttpException(
+        `Facebook OAuth failed: ${error.response?.data?.error_description || 'Unknown error'}`,
+        HttpStatus.BAD_REQUEST
+      );
+    });
+
+    const firstPage = pageInfo.data[0];
+
     try {
     const res = await this.facebookConnRepository.save(
       {
@@ -61,7 +73,10 @@ export class FacebookConnService {
         validUntil: new Date(Date.now() + response.data.expires_in * 1000),
         name: accountInfo.data.name,
         facebookID: accountInfo.data.id,
-        createdAt: new Date()
+        createdAt: new Date(),
+        pageID: firstPage.id,
+        pageName: firstPage.name,
+        pageAccessToken: firstPage.access_token
       }
     );
     await this.userRepository.update(req.currentUser.firebaseUID, {
