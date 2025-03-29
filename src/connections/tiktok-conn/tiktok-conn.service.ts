@@ -63,8 +63,8 @@ export class TiktokConnService {
           validUntil: new Date(Date.now() + response.data.expires_in * 1000),
           refreshValidUntil: new Date(Date.now() + response.data.refresh_expires_in * 1000),
           scope: response.data.scope,
-          userName: accountInfo.data.user.username,
-          tiktokID: accountInfo.data.user.open_id,
+          userName: accountInfo.data.data.user.username,
+          tiktokID: accountInfo.data.data.user.open_id,
           createdAt: new Date()
         }
       );
