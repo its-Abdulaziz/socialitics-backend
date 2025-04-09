@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TwitterConnService } from './twitter-conn.service';
 import { TwitterConnController } from './twitter-conn.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,8 +10,12 @@ import { Tweets } from 'src/scheduler/twitter-scheduler/entities/tweets.entity';
 import { TwitterSchedulerModule } from 'src/scheduler/twitter-scheduler/twitter-scheduler.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TwitterConn, User, Tweets]), UserModule, FirebaseModule, TwitterSchedulerModule],
+  imports: [TypeOrmModule.forFeature([TwitterConn, User, Tweets]), 
+  forwardRef(() => UserModule), 
+  FirebaseModule, 
+  forwardRef(() => TwitterSchedulerModule)],
   controllers: [TwitterConnController],
   providers: [TwitterConnService],
+  exports: [TwitterConnService],
 })
 export class TwitterConnModule {}

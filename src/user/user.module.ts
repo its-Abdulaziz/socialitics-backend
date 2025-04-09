@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,8 +14,13 @@ import { TwitterConnModule } from 'src/connections/twitter-conn/twitter-conn.mod
 import { TiktokConnModule } from 'src/connections/tiktok-conn/tiktok-conn.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, TwitterConn, TiktokConn, FacebookConn, InstagramConn]),FirebaseModule, InstagramConnModule, FacebookConnModule, TwitterConnModule, TiktokConnModule],
+  imports: [TypeOrmModule.forFeature([User, TwitterConn, TiktokConn, FacebookConn, InstagramConn]),FirebaseModule, 
+  forwardRef(() => InstagramConnModule), 
+  forwardRef(() => FacebookConnModule), 
+  forwardRef(() => TwitterConnModule), 
+  forwardRef(() => TiktokConnModule)],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}
