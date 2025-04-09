@@ -6,13 +6,14 @@ import { Repository } from 'typeorm';
 import { TwitterConn } from './entities/twitter-conn.entity';
 import axios from 'axios';
 import { User } from 'src/user/entities/user.entity';
+import { Tweets } from 'src/scheduler/twitter-scheduler/entities/tweets.entity';
 
 @Injectable()
 export class TwitterConnService {
   constructor(
     @InjectRepository(TwitterConn) private readonly twitterConnRepository: Repository<TwitterConn>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    
+    @InjectRepository(Tweets) private readonly tweetsRepository: Repository<Tweets>,
   ) {}
   //TO DO: refresh acces token, access token valid for 2 hours only
   /*
@@ -99,7 +100,7 @@ export class TwitterConnService {
   }
 
   async findOne(firebaseUID: string) {
-    let response = {}
+    let response: any = {}
     try {
     const exist = await this.twitterConnRepository.findOne({
       where: {
@@ -140,11 +141,54 @@ export class TwitterConnService {
       const res = await this.twitterConnRepository.delete({ firebaseUID })
       await this.userRepository.update(firebaseUID , 
         { TwitterUserName: null })
+      await this.tweetsRepository.delete({ firebaseUID })
       return res
     }
     catch (error) {
       throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  async refreshToken(body: any) {
+
+    try{
+    const userConn = await this.twitterConnRepository.findOne({
+      where: {
+        firebaseUID: body.firebaseUID
+      }
+    })
+    if(!userConn) {
+      throw new HttpException("User not found",HttpStatus.BAD_REQUEST)
+    }
+
+    const response = await axios.post('https://api.x.com/2/oauth2/token', new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: userConn.refreshToken,
+      client_id: process.env.TWITTER_CLIENT_ID,
+    }), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
+    });
+    console.log(response.data.access_token)
+
+    const update = await this.twitterConnRepository.update(body.firebaseUID, {
+      accessToken: response.data.access_token,
+      refreshToken: response.data.refresh_token,
+      validUntil: new Date(Date.now() + response.data.expires_in * 1000)
+    })
+
+    console.log("updated successfully", update)
+    return true
+
+    } catch (error) {
+      console.error(error)
+      throw new HttpException(
+        `Error refreshing token: ${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+    
   }
 }

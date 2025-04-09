@@ -6,9 +6,11 @@ import { TwitterConn } from './entities/twitter-conn.entity';
 import { UserModule } from 'src/user/user.module';
 import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { User } from 'src/user/entities/user.entity';
+import { Tweets } from 'src/scheduler/twitter-scheduler/entities/tweets.entity';
+import { TwitterSchedulerModule } from 'src/scheduler/twitter-scheduler/twitter-scheduler.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TwitterConn, User]), UserModule, FirebaseModule],
+  imports: [TypeOrmModule.forFeature([TwitterConn, User, Tweets]), UserModule, FirebaseModule, TwitterSchedulerModule],
   controllers: [TwitterConnController],
   providers: [TwitterConnService],
 })
