@@ -115,6 +115,7 @@ export class TwitterConnService {
         name: exist.name,
         image: exist.image,
         twitterID: exist.twitterID,
+        access_token: exist.accessToken
       }
     }
     else
@@ -179,8 +180,9 @@ export class TwitterConnService {
       validUntil: new Date(Date.now() + response.data.expires_in * 1000)
     })
 
-    console.log("updated successfully", update)
-    return true
+    console.log("updated successfully")
+    console.log(response.data.access_token)
+    return response.data.access_token
 
     } catch (error) {
       console.error(error)

@@ -24,7 +24,16 @@ export class AppController {
   }
   @Get()
   hello() {
-
     return 'ًWelcome to Socialitics Backend. v1';
+  }
+
+  @Get('time')
+  hello1() {
+    let lastEndDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    lastEndDate.setMinutes(lastEndDate.getMinutes() + 2);
+    lastEndDate.setMilliseconds(0)
+    const start_time = lastEndDate.toISOString();
+    console.log(start_time)
+    return start_time;
   }
 }

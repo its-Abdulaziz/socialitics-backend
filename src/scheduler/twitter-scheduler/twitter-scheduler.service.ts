@@ -5,6 +5,8 @@ import { Tweets } from './entities/tweets.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TwitterAnalysis } from './entities/twitter-analysis.entity';
+import axios from 'axios';
+import { query } from 'express';
 
 @Injectable()
 export class TwitterSchedulerService {
@@ -19,33 +21,61 @@ export class TwitterSchedulerService {
 
   async getTwitterTweets(body: any) {
     try {
-    const conn = await this.twitterConnService.findOne(body.firebaseUID);
+      const conn = await this.twitterConnService.findOne(body.firebaseUID);
 
-    if(conn.isExist != true) {
-      throw new Error('Twitter connection not exist for this user');
-    }
-  } catch (error) {
-    throw new HttpException(
-      `Error fetching database: ${error}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
-  }
+      if(conn.isExist != true) {
+        throw new Error('Twitter connection not exist for this user');
+     }
 
-  const lastWeek = await this.twitterAnalysisRepository
-  .createQueryBuilder('twitter_analysis')
-  .select('twitter_analysis.weekNumber')
-  .addSelect('twitter_analysis.endDate')
-  .where('twitter_analysis.firebaseUID = :firebaseUID', { firebaseUID: body.firebaseUID })  
-  .orderBy('twitter_analysis.weekNumber', 'DESC') 
-  .limit(1)  
-  .getOne(); 
+     const access_token = await this.twitterConnService.refreshToken({firebaseUID: body.firebaseUID});
+     //const access_token = conn.access_token;
+     const lastWeek = await this.twitterAnalysisRepository
+     .createQueryBuilder('twitter_analysis')
+     .select('twitter_analysis.weekNumber')
+     .where('twitter_analysis.firebaseUID = :firebaseUID', { firebaseUID: body.firebaseUID })  
+     .orderBy('twitter_analysis.weekNumber', 'DESC') 
+     .limit(1)  
+     .getOne(); 
+     let lastEndDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+     lastEndDate.setMinutes(lastEndDate.getMinutes() + 2);
+     let weeksAvailable = 0;
+     if (lastWeek) {
+       weeksAvailable = lastWeek.weekNumber;
+     }
+     const newEndDate = new Date(Date.now());
+     newEndDate.setMinutes(newEndDate.getMinutes()  - 2);
 
-  let lastEndDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  let weeksAvailable = 0;
-  if (lastWeek) {
-    lastEndDate = new Date(lastWeek.endDate);
-    weeksAvailable = lastWeek.weekNumber;
-  }
+     const startTime = lastEndDate.toISOString();
+     const endTime = newEndDate.toISOString();
+
+     console.log(startTime, endTime)
+
+     const tweets = await axios.get(`https://api.twitter.com/2/tweets/search/recent`,
+      {
+      params: {
+        query: 'from:socialitics0',
+        start_time: startTime,
+        end_time: endTime,
+        "tweet.fields": 'created_at,public_metrics',
+      },
+      headers: {
+         Authorization: `Bearer ${access_token}`,
+      }
+     }).catch((error) => {
+      console.log(error)
+      throw new HttpException(
+        `Error fetching tweets ${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+     })
+
+
+   } catch (error) {
+  throw new HttpException(
+    `Error ${error}`,
+    HttpStatus.INTERNAL_SERVER_ERROR
+  );
+}
   
   }
 
