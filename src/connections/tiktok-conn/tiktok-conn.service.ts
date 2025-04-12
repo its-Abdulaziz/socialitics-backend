@@ -14,6 +14,8 @@ export class TiktokConnService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     
   ) {}
+
+  //TO DO: Check access token validity when making a request
   async create(body: CreateTiktokConnDto, req:any) {
     const isExist: any = await this.findOne(req.currentUser.firebaseUID)
     console.log(isExist)

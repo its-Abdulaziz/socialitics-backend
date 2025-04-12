@@ -3,6 +3,7 @@ import { TwitterConnService } from './twitter-conn.service';
 import { CreateTwitterConnDto } from './dto/create-twitter-conn.dto';
 import { UpdateTwitterConnDto } from './dto/update-twitter-conn.dto';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
+import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
 
 @UseGuards(FirebaseAuthGuard)
 @Controller('api/connections/twitter')
@@ -30,5 +31,11 @@ export class TwitterConnController {
   @Delete(':firebaseUID')
   remove(@Query('firebaseUID') firebaseUID: string, @Request() req) {
     return this.twitterConnService.remove(firebaseUID, req);
+  }
+
+  @NoAuth()
+  @Post('refreshToken')
+  refreshToken(@Body() data: any) {
+    return this.twitterConnService.refreshToken(data);
   }
 }

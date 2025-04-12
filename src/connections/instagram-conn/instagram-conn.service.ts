@@ -14,7 +14,7 @@ export class InstagramConnService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     
   ) {}
-  // TO DO: check validity of access_token when making requests to instagram
+  // TO DO: check validity of access_token when making requests to instagram, access token should be renewd before it expire, otherwise we have to make a new connection
   async create(body: CreateInstagramConnDto, req: any) {
     const isExist: any = await this.findOne(req.currentUser.firebaseUID)
     console.log(isExist)
