@@ -7,11 +7,13 @@ import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { Tweets } from './entities/tweets.entity';
 import { TwitterConnModule } from 'src/connections/twitter-conn/twitter-conn.module';
 import { TwitterAnalysis } from './entities/twitter-analysis.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TwitterConn, Tweets, TwitterAnalysis ]), 
   forwardRef(() => TwitterConnModule), 
-  FirebaseModule],
+  FirebaseModule,
+ScheduleModule.forRoot()],
   controllers: [TwitterSchedulerController],
   providers: [TwitterSchedulerService],
   exports: [TwitterSchedulerService],

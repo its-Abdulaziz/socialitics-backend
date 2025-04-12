@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn,  } from "typeorm";
+import { Column, Double, Entity, PrimaryColumn,  } from "typeorm";
 
 @Entity()
 export class TwitterAnalysis {
@@ -39,7 +39,7 @@ export class TwitterAnalysis {
     @Column()
     impressionsCount: number;
 
-    @Column()
+    @Column({ type: 'double precision' })
     engagementRate: number;
 
 }

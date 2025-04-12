@@ -6,7 +6,7 @@ export class Tweets {
 @PrimaryColumn()
 tweetId: string;
 
-@Column()
+@PrimaryColumn()
 firebaseUID: string;
 
 @Column()
