@@ -100,6 +100,9 @@ export class TiktokConnService {
         isExist: true,
         userName: exist.userName,
         tiktokID: exist.tiktokID,
+        refreshToken: exist.refreshToken,
+        refreshValidUntil: exist.refreshValidUntil,
+        accessToken: exist.accessToken,
       }
     }
     else
@@ -133,4 +136,47 @@ export class TiktokConnService {
       );
     }
   }
+
+  async refreshToken(body: any) {
+   const firebaseUID = body.firebaseUID
+
+   try{
+    const userConn = await this.tiktokConnRepository.findOne({
+      where: {
+        firebaseUID: firebaseUID
+      }
+    })
+    if(!userConn) {
+      throw new HttpException("Connection not found",HttpStatus.BAD_REQUEST)
+    }
+    const response = await axios.post(
+    'https://open.tiktokapis.com/v2/oauth/token/', 
+    new URLSearchParams({
+      client_key: process.env.TIKTOK_CLIENT_KEY,
+      client_secret: process.env.TIKTOK_CLIENT_SECRET,
+      grant_type: 'refresh_token',
+      refresh_token: userConn.refreshToken
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cache-Control': 'no-cache'
+      }
+    }
+  );
+  const update = await this.tiktokConnRepository.update(firebaseUID, {
+    accessToken: response.data.access_token,
+    refreshToken: response.data.refresh_token,
+    validUntil: new Date(Date.now() + response.data.expires_in * 1000),
+    refreshValidUntil: new Date(Date.now() + response.data.refresh_expires_in * 1000),
+  })
+  console.log('Access Token refreshed:\n', response.data.access_token);
+  return response.data.access_token
+} catch (error) {
+  console.error('Error refreshing token:', error);
 }
+
+  }
+
+}
+

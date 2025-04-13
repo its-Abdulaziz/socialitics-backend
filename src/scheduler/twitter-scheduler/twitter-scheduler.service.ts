@@ -115,7 +115,7 @@ export class TwitterSchedulerService {
 
      const analysisData = await this.generateWeekAnalysis(lastEndDate, newEndDate, totalTweets, totalLikes, totalRetweets, totalReplies, totalImpressions, weeksAvailable, followersCount, firebaseUID, conn.twitterID, conn.userName, topTweetID)
      if(analysisData) {
-      console.log("Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)
+      console.log("Twitter Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)
      }
      return true
    } catch (error) {

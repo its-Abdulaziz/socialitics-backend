@@ -6,14 +6,15 @@ import { TiktokConn } from './entities/tiktok-conn.entity';
 import { UserModule } from 'src/user/user.module';
 import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { User } from 'src/user/entities/user.entity';
+import { TiktokSchedulerModule } from 'src/scheduler/tiktok-scheduler/tiktok-scheduler.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TiktokConn, User]), 
   forwardRef(() => UserModule), 
-  FirebaseModule],
+  FirebaseModule, 
+  forwardRef(() => TiktokSchedulerModule)],
   controllers: [TiktokConnController],
   providers: [TiktokConnService],
   exports: [TiktokConnService],
-
 })
 export class TiktokConnModule {}

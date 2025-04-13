@@ -3,6 +3,7 @@ import { TiktokConnService } from './tiktok-conn.service';
 import { CreateTiktokConnDto } from './dto/create-tiktok-conn.dto';
 import { UpdateTiktokConnDto } from './dto/update-tiktok-conn.dto';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
+import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
 
 
 @UseGuards(FirebaseAuthGuard)
@@ -33,5 +34,11 @@ export class TiktokConnController {
   @Delete(':firebaseUID')
   remove(@Param('firebaseUID') firebaseUID: string, @Request() req) {
     return this.tiktokConnService.remove(firebaseUID, req);
+  }
+
+  @NoAuth()
+  @Post('refreshToken')
+  refreshToken(@Body() data: any) {
+    return this.tiktokConnService.refreshToken(data);
   }
 }
