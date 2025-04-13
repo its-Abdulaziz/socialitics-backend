@@ -12,6 +12,9 @@ firebaseUID: string;
 @Column()
 twitterUID: string;
 
+@Column({nullable: true})
+userName: string;
+
 @Column()
 content: string;
 
