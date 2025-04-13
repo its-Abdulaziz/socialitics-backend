@@ -72,18 +72,23 @@ export class TwitterSchedulerService {
      })
       console.log(tweets.data.data,'\n\n\n')
 
-      let totalTweets = 0, totalLikes = 0, totalRetweets = 0, totalReplies = 0, totalImpressions = 0, totalEngagement = 0, followersCount = 0;     
-      
+      let totalTweets = 0, totalLikes = 0, totalRetweets = 0, totalReplies = 0, totalImpressions = 0, totalEngagement = 0, followersCount = 0, maxImpressions = 0;     
+      let topTweetID = "";
       for(let tweet of tweets.data.data) {
       totalTweets++
       totalLikes += tweet.public_metrics.like_count
       totalRetweets += tweet.public_metrics.retweet_count
       totalReplies += tweet.public_metrics.reply_count
       totalImpressions += tweet.public_metrics.impression_count
+      if(tweet.public_metrics.impression_count > maxImpressions) {
+        maxImpressions = tweet.public_metrics.impression_count
+        topTweetID = tweet.id
+      }
       let saveTweet = await this.tweetsRepository.save({
         tweetId: tweet.id,
         firebaseUID: firebaseUID,
         twitterUID: conn.twitterID,
+        userName: conn.userName,
         content: tweet.text,
         createdAt: tweet.created_at,
         retweets: tweet.public_metrics.retweet_count,
@@ -108,7 +113,7 @@ export class TwitterSchedulerService {
      })
      followersCount = accountInfo.data.data.public_metrics.followers_count
 
-     const analysisData = await this.generateWeekAnalysis(lastEndDate, newEndDate, totalTweets, totalLikes, totalRetweets, totalReplies, totalImpressions, weeksAvailable, followersCount, firebaseUID, conn.twitterID, conn.userName)
+     const analysisData = await this.generateWeekAnalysis(lastEndDate, newEndDate, totalTweets, totalLikes, totalRetweets, totalReplies, totalImpressions, weeksAvailable, followersCount, firebaseUID, conn.twitterID, conn.userName, topTweetID)
      if(analysisData) {
       console.log("Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)
      }
@@ -127,7 +132,7 @@ export class TwitterSchedulerService {
     totalRetweets: number, totalReplies: number, 
     totalImpressions: number, weeksAvailable: number, 
     followersCount: number, firebaseUID: string, 
-    twitterID: string, userName: string) {
+    twitterID: string, userName: string, topTweetID: string) {
       try {
     const saveWeekAnalysis = await this.twitterAnalysisRepository.save({
       firebaseUID: firebaseUID,
@@ -142,13 +147,112 @@ export class TwitterSchedulerService {
       retweetsCount: totalRetweets,
       repliesCount: totalReplies,
       impressionsCount: totalImpressions,
-      engagementRate: ((totalLikes + totalRetweets + totalReplies) / (followersCount)) * 100
+      engagementRate: ((totalLikes + totalRetweets + totalReplies) / (followersCount)) * 100,
+      topTweetID: topTweetID
     })
 
     return true
   } catch (error) {
     throw new HttpException(
       `Error saving twitter week analysis ${error}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+  }
+
+ async getTwitterAnalysis(body: any){
+
+    const analysis = await this.twitterAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    }).catch((error) => {
+      console.log(error)
+      throw new HttpException(
+        `Error getting twitter analysis from database${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+     })
+    if (!analysis || analysis.length === 0) {
+      throw new Error('No twitter analysis found for this user');
+    }
+
+    let transformedData = {
+      firebaseUID: analysis[0].firebaseUID,
+      twitterId: analysis[0].twitterId,
+      userName: analysis[0].userName,
+      data: []
+    };
+
+    analysis.forEach((week, index, weeksArray) => {
+      const prevWeek = weeksArray[index - 1];
+
+      const diffFollowers = prevWeek ? week.followersCount - prevWeek.followersCount : 0;
+      const diffPosts = prevWeek ? week.tweetsCount - prevWeek.tweetsCount : 0;
+      const diffLikes = prevWeek ? week.likesCount - prevWeek.likesCount : 0;
+      const diffRetweets = prevWeek ? week.retweetsCount - prevWeek.retweetsCount : 0;
+      const diffReplies = prevWeek ? week.repliesCount - prevWeek.repliesCount : 0;
+      const diffEngagements = prevWeek ? (week.likesCount + week.retweetsCount + week.repliesCount) - (prevWeek.likesCount + prevWeek.retweetsCount + prevWeek.repliesCount) : 0;
+      const diffImpressions = prevWeek ? week.impressionsCount - prevWeek.impressionsCount : 0;
+      
+      const formatDiff = (diff: number) => (diff >= 0 ? `+${diff}` : `${diff}`);
+    
+      transformedData.data.push({
+        weekNumber: week.weekNumber,
+        startDate: this.formatDate(week.startDate),
+        endDate: this.formatDate(week.endDate),
+        totalFollowers: week.followersCount,
+        diffTotalFollowers: formatDiff(diffFollowers),
+        numOfPosts: week.tweetsCount,
+        diffNumOfPosts: formatDiff(diffPosts),
+        totalLikes: week.likesCount,
+        diffTotalLikes: formatDiff(diffLikes),
+        totalRetweets: week.retweetsCount,
+        diffTotalRetweets: formatDiff(diffRetweets),
+        totalReplies: week.repliesCount,
+        diffTotalReplies: formatDiff(diffReplies),
+        totalEngagements: week.likesCount + week.retweetsCount + week.repliesCount,
+        diffTotalEngagements: formatDiff(diffEngagements),
+        totalImpressions: week.impressionsCount,
+        diffTotalImpressions: formatDiff(diffImpressions),
+      });
+    });
+    return transformedData;
+  }
+
+
+  async getTopTweets(body: any) {
+    try{
+    const analysis = await this.twitterAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    })
+    let tweets = []
+    for (const week of analysis) {        
+      const topTweet = await this.tweetsRepository.find({
+          where: {
+            tweetId: week.topTweetID
+          }
+        });
+        tweets.push({
+          weekNumber: week.weekNumber,
+          tweetId: topTweet[0].tweetId,
+          userName: topTweet[0].userName,
+          content: topTweet[0].content,
+          likes: topTweet[0].likes,
+          replies: topTweet[0].replies,
+          retweets: topTweet[0].retweets,
+          impressions: topTweet[0].impressions,
+          engagementRate: ((topTweet[0].likes + topTweet[0].retweets + topTweet[0].replies) / (week.followersCount)) * 100
+        })
+    }
+    return tweets
+  } catch (error) {
+    throw new HttpException(
+      `Error getting top tweets from database${error}`,
       HttpStatus.INTERNAL_SERVER_ERROR
     );
   }
@@ -172,5 +276,9 @@ export class TwitterSchedulerService {
 
   remove(id: number) {
     return `This action removes a #${id} twitterScheduler`;
+  }
+
+  private formatDate(date: Date): string {
+    return `${date.getUTCDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getUTCFullYear()}`;
   }
 }

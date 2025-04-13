@@ -42,4 +42,6 @@ export class TwitterAnalysis {
     @Column({ type: 'double precision' })
     engagementRate: number;
 
+    @Column({nullable: true})
+    topTweetID: string;
 }
