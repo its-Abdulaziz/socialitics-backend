@@ -8,9 +8,10 @@ import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { User } from 'src/user/entities/user.entity';
 import { Tweets } from 'src/scheduler/twitter-scheduler/entities/tweets.entity';
 import { TwitterSchedulerModule } from 'src/scheduler/twitter-scheduler/twitter-scheduler.module';
+import { TwitterAnalysis } from 'src/scheduler/twitter-scheduler/entities/twitter-analysis.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TwitterConn, User, Tweets]), 
+  imports: [TypeOrmModule.forFeature([TwitterConn, User, Tweets, TwitterAnalysis]), 
   forwardRef(() => UserModule), 
   FirebaseModule, 
   forwardRef(() => TwitterSchedulerModule)],
