@@ -5,7 +5,7 @@ import { TiktokAnalysis } from './entities/tiktok-analysis.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import axios from 'axios';
-
+import { Cron } from '@nestjs/schedule';
 @Injectable()
 export class TiktokSchedulerService {
 
@@ -16,8 +16,8 @@ export class TiktokSchedulerService {
     @InjectRepository(TiktokAnalysis) private readonly tiktokAnalysisRepository: Repository<TiktokAnalysis>,
   ) {}
 
-  async create(body: any) {
 
+  async create(body: any) {
     try {
     const conn: any = await this.tiktokConnService.findOne(body.firebaseUID);
 
@@ -45,12 +45,16 @@ export class TiktokSchedulerService {
     console.log('weeksAvailable ',weeksAvailable);
     const endDate = new Date(Date.now());
 
-    const response = await axios.post('https://open-api.tiktok.com/v2/video/list/?fields=id,embed_link,create_time,title,like_count,comment_count,share_count,view_count', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+    const response:any = await fetch(
+      'https://open-api.tiktok.com/v2/video/list/?fields=id,embed_link,create_time,title,like_count,comment_count,share_count,view_count',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
       }
-    }).catch((error) => {
+    ).catch((error) => {
       console.log(error.response.data)
       throw new HttpException(
         `Error fetching tiktok posts`,
@@ -58,8 +62,10 @@ export class TiktokSchedulerService {
       );
      })
 
-    console.log(response.data.data);
-    const posts = response.data.data.videos;
+    const data = await response.json();
+
+    console.log(data.data.videos);
+    const posts = data.data.videos
 
     const today = new Date();
     const lastWeekDate = new Date(today.setDate(today.getDate() - 7));
@@ -71,7 +77,6 @@ export class TiktokSchedulerService {
     let totalPosts = 0, totalLikes = 0, totalShares = 0, totalComments = 0, totalViews = 0, maxViews = 0, topPostID = null;
 
     for (let post of lastWeekPosts) {
-      console.log(post);
       totalPosts++;
 
       totalLikes += post.like_count;
@@ -85,7 +90,7 @@ export class TiktokSchedulerService {
       }
 
       let savePost = await this.tiktokPostsRepository.save({
-        postID: post.id,
+        postId: post.id,
         firebaseUID: body.firebaseUID,
         tiktokID: conn.tiktokID,
         userName: conn.userName,
@@ -107,19 +112,20 @@ export class TiktokSchedulerService {
       }
     });
 
-    const followerCount = accountInfo.data.data.user.follower_count;
+    const followersCount = accountInfo.data.data.user.follower_count;
 
-    console.log(followerCount);
-    /*
+    console.log(followersCount);
+    
     const analysis = await this.generateWeekAnalysis(weeksAvailable, totalPosts, totalLikes,
        totalComments, totalShares, totalViews,
        topPostID, conn.tiktokID, conn.userName,
-       body.firebaseUID, followerCount, startDate, endDate);
+       body.firebaseUID, followersCount, startDate, endDate);
 
        if(analysis) {
         console.log("Tiktok Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)
-      }*/
-       return true       
+        return true
+      }
+       return false       
 
     } catch (error) {
     console.log(error);
@@ -149,7 +155,7 @@ export class TiktokSchedulerService {
         commentsCount: totalComments,
         sharesCount: totalShares,
         viewsCount: totalViews,
-        engagementRate: (((totalLikes + totalComments + totalShares) / (totalPosts )) / totalViews) * 100,
+        engagementRate: (((totalLikes + totalComments + totalShares) / (totalPosts)) / totalViews) * 100,
         topPostID: topPostID,
         startDate: startDate,
         endDate: endDate
@@ -162,10 +168,105 @@ export class TiktokSchedulerService {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
 
-    return true
 
+ async getTiktokAnalysis(body: any){
+
+  const analysis = await this.tiktokAnalysisRepository.find({
+    where: {
+      firebaseUID: body.firebaseUID
+    },
+    order: { weekNumber: 'ASC' },
+  }).catch((error) => {
+    console.log(error)
+    throw new HttpException(
+      `Error getting tiktok analysis from database${error}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+   })
+  if (!analysis || analysis.length === 0) {
+    throw new Error('No tiktok analysis found for this user');
+  }
+
+  let transformedData = {
+    firebaseUID: analysis[0].firebaseUID,
+    tiktokID: analysis[0].tiktokID,
+    userName: analysis[0].userName,
+    data: []
+  };
+
+  analysis.forEach((week, index, weeksArray) => {
+    const prevWeek = weeksArray[index - 1];
+
+    const diffFollowers = prevWeek ? week.followersCount - prevWeek.followersCount : 0;
+    const diffPosts = prevWeek ? week.postsCount - prevWeek.postsCount : 0;
+    const diffLikes = prevWeek ? week.likesCount - prevWeek.likesCount : 0;
+    const diffComments = prevWeek ? week.commentsCount - prevWeek.commentsCount : 0;
+    const diffViews = prevWeek ? week.viewsCount - prevWeek.viewsCount : 0;
+    const diffEngagements = prevWeek ? (week.engagementRate - prevWeek.engagementRate) : 0;
+    const diffShares = prevWeek ? week.sharesCount - prevWeek.sharesCount : 0;
+    
+    const formatDiff = (diff: number) => (diff >= 0 ? `+${diff}` : `${diff}`);
+  
+    transformedData.data.push({
+      weekNumber: week.weekNumber,
+      startDate: this.formatDate(week.startDate),
+      endDate: this.formatDate(week.endDate),
+      totalFollowers: week.followersCount,
+      diffTotalFollowers: formatDiff(diffFollowers),
+      numOfPosts: week.postsCount,
+      diffNumOfPosts: formatDiff(diffPosts),
+      totalLikes: week.likesCount,
+      diffTotalLikes: formatDiff(diffLikes),
+      totalShares: week.sharesCount,
+      diffTotalShares: formatDiff(diffShares),
+      totalComments: week.commentsCount,
+      diffTotalComments: formatDiff(diffComments),
+      totalViews: week.viewsCount,
+      diffTotalViews: formatDiff(diffViews),
+      engagementRate: week.engagementRate,
+      diffEngagementRate: formatDiff(diffEngagements),
+    });
+  });
+  return transformedData;
+}
+
+  async getTopPosts(body: any) {
+    try{
+    const analysis = await this.tiktokAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    })
+    let posts = []
+    for (const week of analysis) {        
+      const topPost = await this.tiktokPostsRepository.find({
+          where: {
+            postId: week.topPostID
+          }
+        });
+        posts.push({
+          weekNumber: week.weekNumber,
+          postId: topPost[0].postId,
+          userName: topPost[0].userName,
+          content: topPost[0].content,
+          likes: topPost[0].likes,
+          comments: topPost[0].comments,
+          views: topPost[0].views,
+          shares: topPost[0].shares,
+          embedUrl: topPost[0].embedUrl
+        })
     }
+    return posts
+  } catch (error) {
+    throw new HttpException(
+      `Error getting top tiktok posts from database ${error}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
 
   findAll() {
     return `This action returns all tiktokScheduler`;
@@ -181,5 +282,9 @@ export class TiktokSchedulerService {
 
   remove(id: number) {
     return `This action removes a #${id} tiktokScheduler`;
+  }
+
+  private formatDate(date: Date): string {
+    return `${date.getUTCDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getUTCFullYear()}`;
   }
 }

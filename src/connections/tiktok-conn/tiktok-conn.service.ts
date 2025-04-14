@@ -6,13 +6,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
+import { TiktokAnalysis } from 'src/scheduler/tiktok-scheduler/entities/tiktok-analysis.entity';
+import { TiktokPosts } from 'src/scheduler/tiktok-scheduler/entities/tiktok-posts.entity';
 
 @Injectable()
 export class TiktokConnService {
   constructor(
     @InjectRepository(TiktokConn) private readonly tiktokConnRepository: Repository<TiktokConn>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    
+    @InjectRepository(TiktokAnalysis) private readonly tiktokAnalysisRepository: Repository<TiktokAnalysis>,
+    @InjectRepository(TiktokPosts) private readonly tiktokPostsRepository: Repository<TiktokPosts>,
   ) {}
 
   //TO DO: Check access token validity when making a request
@@ -129,6 +132,8 @@ export class TiktokConnService {
       const res = await this.tiktokConnRepository.delete({ firebaseUID })
       await this.userRepository.update(firebaseUID , 
         { TiktokUserName: null })
+      await this.tiktokAnalysisRepository.delete({ firebaseUID })
+      await this.tiktokPostsRepository.delete({ firebaseUID })
       return res
     }
     catch (error) {
@@ -170,7 +175,7 @@ export class TiktokConnService {
     validUntil: new Date(Date.now() + response.data.expires_in * 1000),
     refreshValidUntil: new Date(Date.now() + response.data.refresh_expires_in * 1000),
   })
-  console.log('Access Token refreshed:\n', response.data.access_token);
+  console.log('Access Token refreshed:\n', new Date(Date.now() + response.data.expires_in * 1000));
   return response.data.access_token
 } catch (error) {
   console.error('Error refreshing token:', error);

@@ -7,6 +7,7 @@ import { TwitterConn } from './entities/twitter-conn.entity';
 import axios from 'axios';
 import { User } from 'src/user/entities/user.entity';
 import { Tweets } from 'src/scheduler/twitter-scheduler/entities/tweets.entity';
+import { TwitterAnalysis } from 'src/scheduler/twitter-scheduler/entities/twitter-analysis.entity';
 
 @Injectable()
 export class TwitterConnService {
@@ -14,6 +15,7 @@ export class TwitterConnService {
     @InjectRepository(TwitterConn) private readonly twitterConnRepository: Repository<TwitterConn>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Tweets) private readonly tweetsRepository: Repository<Tweets>,
+    @InjectRepository(TwitterAnalysis) private readonly twitterAnalysisRepository: Repository<TwitterAnalysis>
   ) {}
   //TO DO: refresh acces token, access token valid for 2 hours only
   /*
@@ -143,6 +145,7 @@ export class TwitterConnService {
       await this.userRepository.update(firebaseUID , 
         { TwitterUserName: null })
       await this.tweetsRepository.delete({ firebaseUID })
+      await this.twitterAnalysisRepository.delete({ firebaseUID })
       return res
     }
     catch (error) {
