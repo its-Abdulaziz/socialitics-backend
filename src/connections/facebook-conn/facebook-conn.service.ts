@@ -6,12 +6,15 @@ import { FacebookConn } from './entities/facebook-conn.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import axios from 'axios';
+import { FacebookAnalysis } from 'src/scheduler/facebook-scheduler/entities/facebook-analysis.entity';
+import { FacebookPosts } from 'src/scheduler/facebook-scheduler/entities/facebook-posts.entity';
 @Injectable()
 export class FacebookConnService {
   constructor(
     @InjectRepository(FacebookConn) private readonly facebookConnRepository: Repository<FacebookConn>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    
+    @InjectRepository(FacebookAnalysis) private readonly facebookAnalysisRepository: Repository<FacebookAnalysis>,
+    @InjectRepository(FacebookPosts) private readonly facebookPostsRepository: Repository<FacebookPosts>,
   ) {}
   async create(body: CreateFacebookConnDto, req: any) {
     const isExist: any = await this.findOne(req.currentUser.firebaseUID)
@@ -111,6 +114,9 @@ export class FacebookConnService {
         isExist: true,
         name: exist.name,
         facebookID: exist.facebookID,
+        accessToken: exist.accessToken,
+        pageAccessToken: exist.pageAccessToken,
+        pageID: exist.pageID,
       }
     }
     else

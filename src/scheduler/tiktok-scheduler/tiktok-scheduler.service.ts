@@ -25,8 +25,8 @@ export class TiktokSchedulerService {
       throw new Error('Tiktok connection not exist for this user');
     }
 
-    //const accessToken = await this.tiktokConnService.refreshToken({firebaseUID: body.firebaseUID})
-    const accessToken:string = conn.accessToken.toString()
+    const accessToken = await this.tiktokConnService.refreshToken({firebaseUID: body.firebaseUID})
+    //const accessToken:string = conn.accessToken.toString()
 
     console.log('accessToken ',accessToken);
     const lastWeek = await this.tiktokAnalysisRepository
