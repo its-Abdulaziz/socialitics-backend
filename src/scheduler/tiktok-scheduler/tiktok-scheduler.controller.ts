@@ -10,6 +10,7 @@ import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 export class TiktokSchedulerController {
   constructor(private readonly tiktokSchedulerService: TiktokSchedulerService) {}
 
+  @NoAuth()
   @Post()
   create(@Body() body: any) {
     return this.tiktokSchedulerService.create(body);
@@ -20,11 +21,13 @@ export class TiktokSchedulerController {
     return this.tiktokSchedulerService.findAll();
   }
 
+  @NoAuth()
   @Get('analysis')
   getTiktokAnalysis(@Body() body: any) {
     return this.tiktokSchedulerService.getTiktokAnalysis(body);
   }
 
+  @NoAuth()
   @Get('topPosts')
   getTopPosts(@Body() body: any) {
     return this.tiktokSchedulerService.getTopPosts(body);
