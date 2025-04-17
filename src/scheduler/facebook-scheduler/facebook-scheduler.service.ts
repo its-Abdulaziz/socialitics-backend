@@ -163,9 +163,117 @@ export class FacebookSchedulerService {
 
   }
 
-  findAll() {
-    return `This action returns all facebookScheduler`;
+  async getFacebookAnalysis(body: any) {
+    try {
+    const analysis = await this.facebookAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    }).catch((error) => {
+      console.log(error)
+      throw new HttpException(
+        `Error getting tiktok analysis from database${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+     })
+    if (!analysis || analysis.length === 0) {
+      throw new Error('No facebook analysis found for this user');
+    }
+
+    let transformedData = {
+      firebaseUID: analysis[0].firebaseUID,
+      pageID: analysis[0].pageID,
+      userName: analysis[0].userName,
+      data: []
+    };
+
+
+    analysis.forEach((week, index, weeksArray) => {
+      const prevWeek = weeksArray[index - 1];
   
+      const diffFollowers = prevWeek ? week.followersCount - prevWeek.followersCount : 0;
+      const diffPosts = prevWeek ? week.postsCount - prevWeek.postsCount : 0;
+      const diffLikes = prevWeek ? week.likesCount - prevWeek.likesCount : 0;
+      const diffComments = prevWeek ? week.commentsCount - prevWeek.commentsCount : 0;
+      const diffHearts = prevWeek ? week.loveCount - prevWeek.loveCount : 0;
+      const diffHahas = prevWeek ? week.hahaCount - prevWeek.hahaCount : 0;
+      const diffShares = prevWeek ? week.sharesCount - prevWeek.sharesCount : 0;
+      const diffEngagementRate = prevWeek ? week.engagementRate - prevWeek.engagementRate : 0;
+      
+      const formatDiff = (diff: number) => (diff >= 0 ? `+${diff}` : `${diff}`);
+    
+      transformedData.data.push({
+        weekNumber: week.weekNumber,
+        startDate: this.formatDate(week.startDate),
+        endDate: this.formatDate(week.endDate),
+        totalFollowers: week.followersCount,
+        diffTotalFollowers: formatDiff(diffFollowers),
+        totalPosts: week.postsCount,
+        diffTotalPosts: formatDiff(diffPosts),
+        totalLikes: week.likesCount,
+        diffTotalLikes: formatDiff(diffLikes),
+        totalComments: week.commentsCount,
+        diffTotalComments: formatDiff(diffComments),
+        totalHahas: week.hahaCount,
+        diffTotalHahas: formatDiff(diffHahas),
+        totalShares: week.sharesCount,
+        diffTotalShares: formatDiff(diffShares),
+        totalHearts: week.loveCount,
+        diffTotalHearts: formatDiff(diffHearts),
+        totalEngagementRate: week.engagementRate,
+        diffTotalEngagementRate: formatDiff(diffEngagementRate)
+      });
+    });
+
+     return transformedData;
+
+     } catch(error){
+     throw new HttpException(
+      `Error getting facebook analysis from database${error}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+      );
+     }
+  }
+
+  async getTopPosts(body: any) {
+    try{
+    const analysis = await this.facebookAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    })
+    let posts = []
+    for (const week of analysis) {        
+      const topPost = await this.facebookPostsRepository.find({
+          where: {
+            postID: week.topPostID
+          }
+        });
+        posts.push({
+          weekNumber: week.weekNumber,
+          postId: topPost[0].postID,
+          pageId: topPost[0].pageID,
+          userName: topPost[0].userName,
+          content: topPost[0].content,
+          likes: topPost[0].likes,
+          comments: topPost[0].comments,
+          haha: topPost[0].haha,
+          shares: topPost[0].shares,
+          loves: topPost[0].love,
+          permalinkUrl: topPost[0].permalinkUrl
+        })
+    }
+    return posts
+  } catch (error) {
+    throw new HttpException(
+      `Error getting top facebook posts from database ${error}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+  findAll() {
     return `This action returns all facebookScheduler`;
   }
 
@@ -175,5 +283,9 @@ export class FacebookSchedulerService {
 
   remove(id: number) {
     return `This action removes a #${id} facebookScheduler`;
+  }
+
+  private formatDate(date: Date): string {
+    return `${date.getUTCDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getUTCFullYear()}`;
   }
 }
