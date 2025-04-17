@@ -56,29 +56,19 @@ export class FacebookSchedulerService {
 
       const posts = response.data.data;
 
-      console.log(posts[0].likes.summary.total_count)
-      console.log(posts[0].shares.count)
-
-      console.log(posts[0].created_time);
-
-      const today = new Date();  // Get the current date
-      const lastWeekDate = new Date(today); // Clone today to avoid modifying the original `today` object
-      lastWeekDate.setDate(today.getDate() - 21);  // Subtract 7 days to get last week's date
-      
-      // Log last week's date for debugging
-      console.log("Last Week Date:", lastWeekDate);
-      
+      const today = new Date();  
+      const lastWeekDate = new Date(today); 
+      lastWeekDate.setDate(today.getDate() - 21);  
+            
       const lastWeekPosts = posts.filter(post => {
-          const postDate = new Date(post.created_time);  // Parse the created_time into a Date object
-          console.log(postDate); // Log the parsed post date for debugging
-          return postDate >= lastWeekDate;  // Filter posts where the date is within the last week
+          const postDate = new Date(post.created_time);  
+          return postDate >= lastWeekDate;  
       });
-      console.log(lastWeekPosts)
       let totalPosts = 0, totalLikes = 0, totalShares = 0, totalComments = 0, totalHahas = 0, totalLoves = 0, maxPost = 0, topPostID = null;
 
       for(let post of lastWeekPosts){
-        let numOfComments = (post.comments && post.comments.data.length !== undefined) ? post.comments.data.length : 0
-        let shares = (post.shares && post.shares.count !== undefined) ? post.shares.count : 0;
+        let numOfComments = post.comments?.data?.length ?? 0
+        let shares = post.shares?.count ?? 0
 
         totalPosts++
         totalLikes += post.likes.summary.total_count
@@ -108,7 +98,26 @@ export class FacebookSchedulerService {
         });
         console.log("savePost successfully ", post.id)
       }
-      
+      const accountInfo: any = await axios.get(`https://graph.facebook.com/v22.0/${conn.pageID}?fields=followers_count&access_token=${pageAccessToken}`)
+      .catch((error) => {
+        console.log(error.response.data)
+        throw new HttpException(
+          `Error fetching facebook account info: ${error}`,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+       })
+       const followersCount = accountInfo.data.followers_count
+
+       const analysis = await this.generateWeeklyAnalysis(body.firebaseUID, 
+        weeksAvailable, totalPosts, totalLikes, totalShares, totalComments, 
+        totalHahas, totalLoves, conn.pageID, conn.name, 
+        followersCount, topPostID, startDate, endDate)
+
+        if(analysis) {
+          console.log("facebook analysis successfully saved for week ", weeksAvailable + 1, "for user ", conn.name )
+          return true
+        }
+        return false
     }catch (error) {
       console.log(error);
       throw new HttpException(
@@ -118,7 +127,45 @@ export class FacebookSchedulerService {
     }
   }
 
+  async generateWeeklyAnalysis(firebaseUID: string, weekNumber: number, totalPosts: number, 
+    totalLikes: number, totalShares: number, 
+    totalComments: number, totalHahas: number, totalLoves: number,
+    pageID: string, userName: string, followerCount: number,
+    topPostID: string, startDate: Date, endDate: Date) {
+    
+      try {
+
+        const saveFacebookAnalysis = await this.facebookAnalysisRepository.save({
+          firebaseUID: firebaseUID,
+          weekNumber: weekNumber + 1,
+          postsCount: totalPosts,
+          likesCount: totalLikes,
+          sharesCount: totalShares,
+          commentsCount: totalComments,
+          hahaCount: totalHahas,
+          loveCount: totalLoves,
+          pageID: pageID,
+          userName: userName,
+          followersCount: followerCount,
+          engagementRate: (((totalLikes + totalComments + totalShares) / (totalPosts)) / followerCount) * 100,
+          topPostID: topPostID,
+          startDate: startDate,
+          endDate: endDate
+        })
+        return true
+      }catch (error) {
+        console.log(error);
+        throw new HttpException(
+          `Error saving facebook analysis: ${error}`,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+
+  }
+
   findAll() {
+    return `This action returns all facebookScheduler`;
+  
     return `This action returns all facebookScheduler`;
   }
 
