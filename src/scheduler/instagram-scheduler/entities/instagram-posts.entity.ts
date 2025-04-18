@@ -1,8 +1,7 @@
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
-export class FacebookPosts {
-
+export class InstagramPosts {
     @PrimaryColumn()
     firebaseUID: string;
 
@@ -10,11 +9,14 @@ export class FacebookPosts {
     postID: string;
 
     @Column()
-    pageID: string;
+    instagramID: string;
 
-    @Column({nullable: true})
+    @Column()
     userName: string;
-    
+
+    @Column()
+    mediaType: string;
+
     @Column({nullable: true})
     content: string;
 
@@ -25,17 +27,17 @@ export class FacebookPosts {
     likes: number;
 
     @Column()
-    love: number;
+    comments: number;
 
     @Column()
     shares: number;
 
     @Column()
-    haha: number;
+    views: number;
 
     @Column()
-    comments: number;
+    totalInteractions: number;
 
     @Column()
-    permalinkUrl: string;
+    shortcode: string;
 }

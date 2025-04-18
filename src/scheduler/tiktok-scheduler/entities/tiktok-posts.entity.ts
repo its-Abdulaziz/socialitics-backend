@@ -15,7 +15,7 @@ export class TiktokPosts {
     @Column({nullable: true})
     userName: string;
     
-    @Column()
+    @Column({nullable: true})
     content: string;
     
     @Column()
