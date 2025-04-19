@@ -160,7 +160,11 @@ export class TwitterSchedulerService {
   }
   }
 
- async getTwitterAnalysis(body: any){
+ async getTwitterAnalysis(body: any, req: any){
+
+  if(body.firebaseUID != req.currentUser.firebaseUID) {
+    throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
+  }
 
     const analysis = await this.twitterAnalysisRepository.find({
       where: {
@@ -222,7 +226,11 @@ export class TwitterSchedulerService {
   }
 
 
-  async getTopTweets(body: any) {
+  async getTopTweets(body: any, req: any) {
+
+    if(body.firebaseUID != req.currentUser.firebaseUID) {
+      throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
+    }
     try{
     const analysis = await this.twitterAnalysisRepository.find({
       where: {

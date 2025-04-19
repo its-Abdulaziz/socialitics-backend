@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards,Query, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, UseGuards,Query,Request, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { TwitterSchedulerService } from './twitter-scheduler.service';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
@@ -14,16 +14,14 @@ export class TwitterSchedulerController {
     return this.twitterSchedulerService.getTwitterTweets(body);
   }
 
-  @NoAuth()
   @Get('analysis')
-  getTwitterAnalysis(@Body() body: any) {
-    return this.twitterSchedulerService.getTwitterAnalysis(body);
+  getTwitterAnalysis(@Body() body: any, @Request()req: any) {
+    return this.twitterSchedulerService.getTwitterAnalysis(body, req);
   }
 
-  @NoAuth()
   @Get('topTweets')
-  getTopTweets(@Body() body: any) {
-    return this.twitterSchedulerService.getTopTweets(body);
+  getTopTweets(@Body() body: any, @Request()req: any) {
+    return this.twitterSchedulerService.getTopTweets(body, req);
   }
 
   @Get()

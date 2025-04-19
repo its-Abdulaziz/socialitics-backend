@@ -163,7 +163,12 @@ export class FacebookSchedulerService {
 
   }
 
-  async getFacebookAnalysis(body: any) {
+  async getFacebookAnalysis(body: any, req: any) {
+
+    if(body.firebaseUID != req.currentUser.firebaseUID) {
+      throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
+    }
+
     try {
     const analysis = await this.facebookAnalysisRepository.find({
       where: {
@@ -236,7 +241,12 @@ export class FacebookSchedulerService {
      }
   }
 
-  async getTopPosts(body: any) {
+  async getTopPosts(body: any, req: any) {
+
+    if(body.firebaseUID != req.currentUser.firebaseUID) {
+      throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
+    }
+
     try{
     const analysis = await this.facebookAnalysisRepository.find({
       where: {

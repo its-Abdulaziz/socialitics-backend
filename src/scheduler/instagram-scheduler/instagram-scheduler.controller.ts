@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body,Request, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { InstagramSchedulerService } from './instagram-scheduler.service';
+import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 
+@UseGuards(FirebaseAuthGuard)
 @Controller('instagram/scheduler')
 export class InstagramSchedulerController {
   constructor(private readonly instagramSchedulerService: InstagramSchedulerService) {}
+
 
   @Post()
   create(@Body() body: any) {
@@ -11,13 +14,13 @@ export class InstagramSchedulerController {
   }
 
   @Get('analysis')
-  getInstagramAnalysis(@Body() body: any) {
-    return this.instagramSchedulerService.getInstagramAnalysis(body);
+  getInstagramAnalysis(@Body() body: any, @Request()req: any) {
+    return this.instagramSchedulerService.getInstagramAnalysis(body,req);
   }
 
   @Get('topPosts')
-  getTopPosts(@Body() body: any) {
-    return this.instagramSchedulerService.getTopPosts(body);
+  getTopPosts(@Body() body: any, @Request()req: any) {
+    return this.instagramSchedulerService.getTopPosts(body,req);
   }
 
   @Get(':id')

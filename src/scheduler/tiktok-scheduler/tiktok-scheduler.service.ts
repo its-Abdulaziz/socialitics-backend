@@ -171,7 +171,11 @@ export class TiktokSchedulerService {
   }
 
 
- async getTiktokAnalysis(body: any){
+ async getTiktokAnalysis(body: any, req: any){
+
+  if(body.firebaseUID != req.currentUser.firebaseUID) {
+    throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
+  }
 
   const analysis = await this.tiktokAnalysisRepository.find({
     where: {
@@ -232,7 +236,12 @@ export class TiktokSchedulerService {
   return transformedData;
 }
 
-  async getTopPosts(body: any) {
+  async getTopPosts(body: any, req: any) {
+
+    if(body.firebaseUID != req.currentUser.firebaseUID) {
+      throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
+    }
+    
     try{
     const analysis = await this.tiktokAnalysisRepository.find({
       where: {
