@@ -1,13 +1,13 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { InstagramSchedulerService } from './instagram-scheduler.service';
 
-@Controller('instagram-scheduler')
+@Controller('instagram/scheduler')
 export class InstagramSchedulerController {
   constructor(private readonly instagramSchedulerService: InstagramSchedulerService) {}
 
   @Post()
-  create(@Body() createInstagramSchedulerDto: any) {
-    return this.instagramSchedulerService.create(createInstagramSchedulerDto);
+  create(@Body() body: any) {
+    return this.instagramSchedulerService.create(body);
   }
 
   @Get()

@@ -36,6 +36,9 @@ export class InstagramPosts {
     views: number;
 
     @Column()
+    reach: number;
+
+    @Column()
     totalInteractions: number;
 
     @Column()
