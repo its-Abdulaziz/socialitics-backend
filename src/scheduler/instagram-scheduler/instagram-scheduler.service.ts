@@ -5,6 +5,8 @@ import { InstagramAnalysis } from './entities/instagram-analysis.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import axios from 'axios';
+import { Cron } from '@nestjs/schedule';
+
 
 @Injectable()
 export class InstagramSchedulerService {
@@ -14,6 +16,8 @@ export class InstagramSchedulerService {
     @InjectRepository(InstagramPosts) private readonly instagramPostsRepository: Repository<InstagramPosts>,
     @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
   ) {}
+
+  
   async create(body: any) {
     try {
 
@@ -208,6 +212,116 @@ export class InstagramSchedulerService {
     }
 
   }
+
+  async getInstagramAnalysis(body: any){
+
+    const analysis = await this.instagramAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    }).catch((error) => {
+      console.log(error)
+      throw new HttpException(
+        `Error getting instagram analysis from database${error}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+     })
+    if (!analysis || analysis.length === 0) {
+      throw new Error('No instagram analysis found for this user');
+    }
+
+    let transformedData = {
+      firebaseUID: analysis[0].firebaseUID,
+      instagramID: analysis[0].instagramID,
+      userName: analysis[0].userName,
+      data: []
+    };
+
+    analysis.forEach((week, index, weeksArray) => {
+      const prevWeek = weeksArray[index - 1];
+  
+      const diffFollowers = prevWeek ? week.followersCount - prevWeek.followersCount : 0;
+      const diffPosts = prevWeek ? week.postsCount - prevWeek.postsCount : 0;
+      const diffLikes = prevWeek ? week.likesCount - prevWeek.likesCount : 0;
+      const diffComments = prevWeek ? week.commentsCount - prevWeek.commentsCount : 0;
+      const diffViews = prevWeek ? week.viewsCount - prevWeek.viewsCount : 0;
+      const diffReach = prevWeek ? week.reachCount - prevWeek.reachCount : 0;
+      const diffInteractions = prevWeek ? week.totalInteractions - prevWeek.totalInteractions : 0;
+      const diffEngagements = prevWeek ? (week.engagementRate - prevWeek.engagementRate) : 0;
+      const diffShares = prevWeek ? week.sharesCount - prevWeek.sharesCount : 0;
+      
+      const formatDiff = (diff: number) => (diff >= 0 ? `+${diff}` : `${diff}`);
+    
+      transformedData.data.push({
+        weekNumber: week.weekNumber,
+        startDate: this.formatDate(week.startDate),
+        endDate: this.formatDate(week.endDate),
+        totalFollowers: week.followersCount,
+        diffTotalFollowers: formatDiff(diffFollowers),
+        numOfPosts: week.postsCount,
+        diffNumOfPosts: formatDiff(diffPosts),
+        totalLikes: week.likesCount,
+        diffTotalLikes: formatDiff(diffLikes),
+        totalShares: week.sharesCount,
+        diffTotalShares: formatDiff(diffShares),
+        totalComments: week.commentsCount,
+        diffTotalComments: formatDiff(diffComments),
+        totalViews: week.viewsCount,
+        diffTotalViews: formatDiff(diffViews),
+        totalReach: week.reachCount,
+        diffTotalReach: formatDiff(diffReach),
+        totalInteractions: week.totalInteractions,
+        diffTotalInteractions: formatDiff(diffInteractions),
+        engagementRate: week.engagementRate,
+        diffEngagementRate: formatDiff(diffEngagements),
+      });
+    });
+    return transformedData;
+  }
+
+  async getTopPosts(body: any) {
+    try{
+    const analysis = await this.instagramAnalysisRepository.find({
+      where: {
+        firebaseUID: body.firebaseUID
+      },
+      order: { weekNumber: 'ASC' },
+    })
+    let posts = []
+    for (const week of analysis) {        
+      const topPost = await this.instagramPostsRepository.find({
+          where: {
+            postID: week.topPostID
+          }
+        });
+        posts.push({
+          weekNumber: week.weekNumber,
+          postId: topPost[0].postID,
+          userName: topPost[0].userName,
+          content: topPost[0].content,
+          likes: topPost[0].likes,
+          comments: topPost[0].comments,
+          views: topPost[0].views,
+          shares: topPost[0].shares,
+          reach: topPost[0].reach,
+          interactions: topPost[0].totalInteractions,
+          embedUrl: `https://www.instagram.com/p/${topPost[0].shortcode}/embed/`
+        })
+    }
+    return posts
+  } catch (error) {
+    throw new HttpException(
+      `Error getting top tiktok posts from database ${error}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
+  private formatDate(date: Date): string {
+    return `${date.getUTCDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getUTCFullYear()}`;
+  }
+  
   findAll() {
     return `This action returns all instagramScheduler`;
   }

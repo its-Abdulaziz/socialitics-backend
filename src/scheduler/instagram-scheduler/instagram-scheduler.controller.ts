@@ -10,9 +10,14 @@ export class InstagramSchedulerController {
     return this.instagramSchedulerService.create(body);
   }
 
-  @Get()
-  findAll() {
-    return this.instagramSchedulerService.findAll();
+  @Get('analysis')
+  getInstagramAnalysis(@Body() body: any) {
+    return this.instagramSchedulerService.getInstagramAnalysis(body);
+  }
+
+  @Get('topPosts')
+  getTopPosts(@Body() body: any) {
+    return this.instagramSchedulerService.getTopPosts(body);
   }
 
   @Get(':id')
