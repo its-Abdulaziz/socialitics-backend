@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Request, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, Request, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { FacebookSchedulerService } from './facebook-scheduler.service';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
@@ -16,13 +16,15 @@ export class FacebookSchedulerController {
   }
 
   @Get('analysis')
-  findAll(@Body() body: any, @Request()req: any) {
-    return this.facebookSchedulerService.getFacebookAnalysis(body,req);
+  findAll(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.facebookSchedulerService.getFacebookAnalysis(firebaseUID,req);
   }
 
   @Get('topPosts')
-  findTopPosts(@Body() body: any, @Request()req: any) {
-    return this.facebookSchedulerService.getTopPosts(body,req);
+  findTopPosts(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.facebookSchedulerService.getTopPosts(firebaseUID ,req);
   }
 
   @Get(':id')

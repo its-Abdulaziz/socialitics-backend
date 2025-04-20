@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards,Query,Request, Post, Body, Patch, Param, Del
 import { TwitterSchedulerService } from './twitter-scheduler.service';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
+import { query } from 'express';
 
 @Controller('twitter/scheduler')
 @UseGuards(FirebaseAuthGuard)
@@ -15,13 +16,15 @@ export class TwitterSchedulerController {
   }
 
   @Get('analysis')
-  getTwitterAnalysis(@Body() body: any, @Request()req: any) {
-    return this.twitterSchedulerService.getTwitterAnalysis(body, req);
+  getTwitterAnalysis(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.twitterSchedulerService.getTwitterAnalysis(firebaseUID, req);
   }
 
   @Get('topTweets')
-  getTopTweets(@Body() body: any, @Request()req: any) {
-    return this.twitterSchedulerService.getTopTweets(body, req);
+  getTopTweets(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.twitterSchedulerService.getTopTweets(firebaseUID, req);
   }
 
   @Get()

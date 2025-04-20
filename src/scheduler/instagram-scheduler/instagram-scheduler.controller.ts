@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body,Request, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body,Request, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { InstagramSchedulerService } from './instagram-scheduler.service';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
 
@@ -14,13 +14,15 @@ export class InstagramSchedulerController {
   }
 
   @Get('analysis')
-  getInstagramAnalysis(@Body() body: any, @Request()req: any) {
-    return this.instagramSchedulerService.getInstagramAnalysis(body,req);
+  getInstagramAnalysis(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.instagramSchedulerService.getInstagramAnalysis(firebaseUID,req);
   }
 
   @Get('topPosts')
-  getTopPosts(@Body() body: any, @Request()req: any) {
-    return this.instagramSchedulerService.getTopPosts(body,req);
+  getTopPosts(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.instagramSchedulerService.getTopPosts(firebaseUID,req);
   }
 
   @Get(':id')

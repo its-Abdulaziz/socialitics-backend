@@ -213,15 +213,15 @@ export class InstagramSchedulerService {
 
   }
 
-  async getInstagramAnalysis(body: any, req: any){
+  async getInstagramAnalysis(firebaseUID: any, req: any){
 
-    if(body.firebaseUID != req.currentUser.firebaseUID) {
+    if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
     }
 
     const analysis = await this.instagramAnalysisRepository.find({
       where: {
-        firebaseUID: body.firebaseUID
+        firebaseUID: firebaseUID
       },
       order: { weekNumber: 'ASC' },
     }).catch((error) => {
@@ -284,15 +284,15 @@ export class InstagramSchedulerService {
     return transformedData;
   }
 
-  async getTopPosts(body: any, req: any) {
+  async getTopPosts(firebaseUID: any, req: any) {
 
-    if(body.firebaseUID != req.currentUser.firebaseUID) {
+    if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
     }
     try{
     const analysis = await this.instagramAnalysisRepository.find({
       where: {
-        firebaseUID: body.firebaseUID
+        firebaseUID: firebaseUID
       },
       order: { weekNumber: 'ASC' },
     })
