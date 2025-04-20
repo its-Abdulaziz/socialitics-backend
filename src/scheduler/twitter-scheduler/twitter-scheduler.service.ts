@@ -21,7 +21,7 @@ export class TwitterSchedulerService {
 
   //@Cron('25 18 * * *')
   async getTwitterTweets(body: any) {
-    const firebaseUID = 'm2QrpPJ63yN2oreSHceT6RgCDX23';
+    const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02';
     try {
       const conn = await this.twitterConnService.findOne(firebaseUID);
 
