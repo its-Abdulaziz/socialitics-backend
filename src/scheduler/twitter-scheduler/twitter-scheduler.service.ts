@@ -21,7 +21,7 @@ export class TwitterSchedulerService {
 
   //@Cron('25 18 * * *')
   async getTwitterTweets(body: any) {
-    const firebaseUID = 'm2QrpPJ63yN2oreSHceT6RgCDX23';
+    const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02';
     try {
       const conn = await this.twitterConnService.findOne(firebaseUID);
 
@@ -160,11 +160,15 @@ export class TwitterSchedulerService {
   }
   }
 
- async getTwitterAnalysis(body: any){
+ async getTwitterAnalysis(firebaseUID: any, req: any){
+
+  if(firebaseUID != req.currentUser.firebaseUID) {
+    throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
+  }
 
     const analysis = await this.twitterAnalysisRepository.find({
       where: {
-        firebaseUID: body.firebaseUID
+        firebaseUID: firebaseUID
       },
       order: { weekNumber: 'ASC' },
     }).catch((error) => {
@@ -222,11 +226,15 @@ export class TwitterSchedulerService {
   }
 
 
-  async getTopTweets(body: any) {
+  async getTopTweets(firebaseUID: any, req: any) {
+
+    if(firebaseUID != req.currentUser.firebaseUID) {
+      throw new HttpException("You can get only your own data",HttpStatus.BAD_REQUEST)
+    }
     try{
     const analysis = await this.twitterAnalysisRepository.find({
       where: {
-        firebaseUID: body.firebaseUID
+        firebaseUID: firebaseUID
       },
       order: { weekNumber: 'ASC' },
     })

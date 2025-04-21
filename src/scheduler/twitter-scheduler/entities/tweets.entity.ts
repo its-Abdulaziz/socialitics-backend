@@ -15,7 +15,7 @@ twitterUID: string;
 @Column({nullable: true})
 userName: string;
 
-@Column()
+@Column({nullable: true})
 content: string;
 
 @Column()

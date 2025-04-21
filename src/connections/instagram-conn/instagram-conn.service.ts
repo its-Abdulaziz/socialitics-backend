@@ -106,6 +106,7 @@ export class InstagramConnService {
         isExist: true,
         userName: exist.userName,
         instagramID: exist.instagramID,
+        accessToken: exist.accessToken
       }
     }
     else

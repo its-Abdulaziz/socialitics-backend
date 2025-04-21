@@ -41,6 +41,7 @@ export class FirebaseAuthGuard implements CanActivate {
 
         if (nonProduction && token == 'test') {
             request.token = token;
+            request.currentUser.firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
             return true;
         }
 

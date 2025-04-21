@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller,Request, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TiktokSchedulerService } from './tiktok-scheduler.service';
 import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -21,16 +21,16 @@ export class TiktokSchedulerController {
     return this.tiktokSchedulerService.findAll();
   }
 
-  @NoAuth()
   @Get('analysis')
-  getTiktokAnalysis(@Body() body: any) {
-    return this.tiktokSchedulerService.getTiktokAnalysis(body);
+  getTiktokAnalysis(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.tiktokSchedulerService.getTiktokAnalysis(firebaseUID, req);
   }
 
-  @NoAuth()
   @Get('topPosts')
-  getTopPosts(@Body() body: any) {
-    return this.tiktokSchedulerService.getTopPosts(body);
+  getTopPosts(@Query() query: any, @Request()req: any) {
+    const firebaseUID = query.firebaseUID;
+    return this.tiktokSchedulerService.getTopPosts(firebaseUID, req);
   }
 
   @Get(':id')
