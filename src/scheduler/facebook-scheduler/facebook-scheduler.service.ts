@@ -16,7 +16,7 @@ export class FacebookSchedulerService {
   ) 
   {}
 
-  @Cron('20 23 * * 2')
+  @Cron('25 20 * * 2')
   async create(body: any) {
     try{
       const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
