@@ -28,6 +28,10 @@ export class PostsSchedulerController {
   schedulePostInstagram(@Body() body: any) {
     return this.postsSchedulerService.schedulePostInstagram(body);
   }
+  @Post('facebook')
+  schedulePostFacebook(@Body() body: any) {
+    return this.postsSchedulerService.schedulePostFacebook(body);
+  }
 
   @Get()
   findAll() {

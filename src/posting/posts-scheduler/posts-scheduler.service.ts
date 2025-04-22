@@ -9,7 +9,7 @@ import { TwitterApi } from 'twitter-api-v2';
 import { TiktokConnService } from 'src/connections/tiktok-conn/tiktok-conn.service';
 import axios from 'axios';
 import { InstagramConnService } from 'src/connections/instagram-conn/instagram-conn.service';
-import { delay } from 'rxjs';
+import { FacebookConnService } from 'src/connections/facebook-conn/facebook-conn.service';
 
 @Injectable()
 export class PostsSchedulerService {
@@ -17,6 +17,7 @@ export class PostsSchedulerService {
     @Inject(forwardRef(() => TwitterConnService)) private readonly twitterConnService: TwitterConnService,
     @Inject(forwardRef(() => TiktokConnService)) private readonly tiktokConnService: TiktokConnService,
     @Inject(forwardRef(() => InstagramConnService)) private readonly instagramConnService: InstagramConnService,
+    @Inject(forwardRef(() => FacebookConnService)) private readonly facebookConnService: FacebookConnService,
     @InjectRepository(PostsScheduler) private readonly postsSchedulerRepository: Repository<PostsScheduler>,
   ) {}
 
@@ -39,6 +40,9 @@ export class PostsSchedulerService {
       }
       else if(post.platform === 'instagram') {
         await this.publishPostInstagram(post)
+      }
+      else {
+        await this.publishPostFacebook(post)
       }
     }
     return posts
@@ -106,7 +110,7 @@ export class PostsSchedulerService {
         scheduleDate: body.scheduleDate,
         status: 'scheduled',
         platform: 'tiktok',
-        content: body.content,
+        content: body.content ?? null,
         mediaUrl: body.mediaUrl,
         mediaType: mediaType
       }
@@ -128,7 +132,7 @@ export class PostsSchedulerService {
 
     const data = {
       post_info: {
-        title: body.content,
+        title: body.content ?? "",
         privacy_level: 'SELF_ONLY',
         video_cover_timestamp_ms: 1000
       },
@@ -177,7 +181,7 @@ export class PostsSchedulerService {
         scheduleDate: body.scheduleDate,
         status: 'scheduled',
         platform: 'instagram',
-        content: body.content,
+        content: body.content ?? null,
         mediaUrl: body.mediaUrl,
         mediaType: mediaType
       }
@@ -200,13 +204,13 @@ export class PostsSchedulerService {
     if(this.isImageUrl(body.mediaUrl)) {
       requestBody = {
         image_url: body.mediaUrl,
-        caption: body.content
+        caption: body.content ?? ""
       }
     }
     else {
       requestBody = {
         video_url: body.mediaUrl,
-        caption: body.content,
+        caption: body.content ?? "",
         media_type: 'REELS',
         thumb_offset: 1000
       }
@@ -240,7 +244,7 @@ export class PostsSchedulerService {
     await this.postsSchedulerRepository.update({postID: body.postID}, {
       status: 'published'
     })
-    console.log("post ", body.postID, "successfully posted on instagram")
+    console.log("post ", body.postID, "updated to published")
     return true
 
     } catch(e) {
@@ -250,6 +254,88 @@ export class PostsSchedulerService {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  async schedulePostFacebook(body: any) {
+    let mediaType
+    if(body.mediaUrl) {
+     mediaType = this.isImageUrl(body.mediaUrl) ? 'image' : 'video';
+  }
+    try {
+    const savePost = await this.postsSchedulerRepository.save(
+      {
+        firebaseUID: body.firebaseUID,
+        scheduleDate: body.scheduleDate,
+        status: 'scheduled',
+        platform: 'facebook',
+        content: body.content ?? null,
+        mediaUrl: body.mediaUrl ?? null,
+        mediaType: mediaType ?? null
+      }
+    )
+    console.log("post scheduled successfully  ",savePost)
+
+  } catch(e) {
+    console.log(e)
+    throw new HttpException(
+      `Error saving facebook scheduled post ${e}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+   }
+  }
+
+  async publishPostFacebook(body: any) {
+    try {
+      let url = ''
+      let requestBody = {}
+      const conn: any = await this.facebookConnService.findOne(body.firebaseUID)
+      if(body.mediaUrl) {
+        if(body.mediaType == 'image') {
+          url = `https://graph.facebook.com/v22.0/${conn.pageID}/photos?access_token=${conn.pageAccessToken}`
+          requestBody = {
+            url: body.mediaUrl,
+            message: body.content ?? ""
+          }
+        } 
+        else {
+          url = `https://graph.facebook.com/v22.0/${conn.pageID}/videos?access_token=${conn.pageAccessToken}`
+          requestBody = {
+            file_url: body.mediaUrl,
+            description: body.content ?? ""
+          }
+        }
+      }
+      else {
+        url = `https://graph.facebook.com/v22.0/${conn.pageID}/feed?access_token=${conn.pageAccessToken}`
+        requestBody = {
+          message: body.content ?? ""
+        }
+      }
+
+      const response = await axios.post(url, requestBody)
+      .catch((error) => {
+        console.log(error.response.data)
+        throw new HttpException(
+          `Error publishing facebook post for posts ${body.postID}\n ${error.response.data}`,
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      });
+      console.log("post published successfully ", response.data)
+
+      await this.postsSchedulerRepository.update({postID: body.postID}, {
+        status: 'published'
+      })
+      console.log("post ", body.postID, "updated to published")
+      return true
+
+    } catch(e) {
+      console.log(e)
+      throw new HttpException(
+        `Error processing facebook scheduled post ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+
   }
 
   findAll() {

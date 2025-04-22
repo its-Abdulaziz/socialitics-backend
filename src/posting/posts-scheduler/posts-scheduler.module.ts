@@ -9,13 +9,15 @@ import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TiktokConnModule } from 'src/connections/tiktok-conn/tiktok-conn.module';
 import { InstagramConnModule } from 'src/connections/instagram-conn/instagram-conn.module';
+import { FacebookConnModule } from 'src/connections/facebook-conn/facebook-conn.module';
 
 @Module({
 
   imports: [TypeOrmModule.forFeature([PostsScheduler]), 
   TwitterConnModule,
   TiktokConnModule,
-  InstagramConnModule,  
+  InstagramConnModule,
+  FacebookConnModule,  
   FirebaseModule, 
   ScheduleModule.forRoot()],
   controllers: [PostsSchedulerController],
