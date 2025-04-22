@@ -17,22 +17,25 @@ export class TiktokSchedulerService {
   ) {}
 
 
+  @Cron('28 23 * * 2')
   async create(body: any) {
+
+    const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
     try {
-    const conn: any = await this.tiktokConnService.findOne(body.firebaseUID);
+    const conn: any = await this.tiktokConnService.findOne(firebaseUID);
 
     if(conn.isExist != true) {
       throw new Error('Tiktok connection not exist for this user');
     }
 
-    const accessToken = await this.tiktokConnService.refreshToken({firebaseUID: body.firebaseUID})
+    const accessToken = await this.tiktokConnService.refreshToken({firebaseUID: firebaseUID})
     //const accessToken:string = conn.accessToken.toString()
 
     console.log('accessToken ',accessToken);
     const lastWeek = await this.tiktokAnalysisRepository
     .createQueryBuilder('tiktok_analysis')
     .select('tiktok_analysis.weekNumber')
-    .where('tiktok_analysis.firebaseUID = :firebaseUID', { firebaseUID: body.firebaseUID })  
+    .where('tiktok_analysis.firebaseUID = :firebaseUID', { firebaseUID: firebaseUID })  
     .orderBy('tiktok_analysis.weekNumber', 'DESC') 
     .limit(1)  
     .getOne(); 
@@ -84,14 +87,14 @@ export class TiktokSchedulerService {
       totalComments += post.comment_count;
       totalViews += post.view_count;
 
-      if (post.view_count > maxViews) {
+      if (post.view_count >= maxViews) {
         maxViews = post.view_count;
         topPostID = post.id;
       }
 
       let savePost = await this.tiktokPostsRepository.save({
         postId: post.id,
-        firebaseUID: body.firebaseUID,
+        firebaseUID: firebaseUID,
         tiktokID: conn.tiktokID,
         userName: conn.userName,
         content: post.title,
@@ -119,7 +122,7 @@ export class TiktokSchedulerService {
     const analysis = await this.generateWeekAnalysis(weeksAvailable, totalPosts, totalLikes,
        totalComments, totalShares, totalViews,
        topPostID, conn.tiktokID, conn.userName,
-       body.firebaseUID, followersCount, startDate, endDate);
+       firebaseUID, followersCount, startDate, endDate);
 
        if(analysis) {
         console.log("Tiktok Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)

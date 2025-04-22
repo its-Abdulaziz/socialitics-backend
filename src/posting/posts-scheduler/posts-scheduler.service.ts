@@ -338,6 +338,20 @@ export class PostsSchedulerService {
 
   }
 
+  getUserPosts(firebaseUID: string) {
+    try {
+
+    return this.postsSchedulerRepository.find({where: {firebaseUID: firebaseUID}})
+    
+  } catch(e) {
+      console.log(e)
+      throw new HttpException(
+        `Error getting user posts ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
   findAll() {
     return `This action returns all postsScheduler`;
   }
@@ -350,9 +364,84 @@ export class PostsSchedulerService {
     return `This action updates a #${id} postsScheduler`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} postsScheduler`;
+  async remove(body: any) {
+    try {
+
+      const getPost = await this.postsSchedulerRepository.findOne(
+        {
+          where: {
+            postID: body.postID
+          }
+        }
+      )
+
+      if(!getPost || getPost.status != 'scheduled') {
+        throw new HttpException(
+          `Post not fount or can not be deleted`,
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      if( getPost.firebaseUID != body.firebaseUID) {
+        throw new HttpException(
+          `You can't delete this post`,
+          HttpStatus.UNAUTHORIZED
+        );
+      }
+      
+    const deletePost = await this.postsSchedulerRepository.delete(
+      {postID: body.postID}
+    )
+      return deletePost 
+    } catch(e) {
+      console.log(e.response.data)
+      throw new HttpException(
+      `Error deleting post ${e.response.data}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+   }
   }
+
+  async updatePost(body: any) {
+    try {
+
+      const getPost = await this.postsSchedulerRepository.findOne(
+        {
+          where: {
+            postID: body.postID
+          }
+        }
+      )
+      if(!getPost || getPost.status != 'scheduled') {
+        throw new HttpException(
+          `Post not fount or not scheduled`,
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      if( getPost.firebaseUID != body.firebaseUID) {
+        throw new HttpException(
+          `You can't update this post`,
+          HttpStatus.UNAUTHORIZED
+        );
+      }
+
+      const updatePost = await this.postsSchedulerRepository.update(
+        {postID: body.postID},
+        {
+          status: 'scheduled',
+          scheduleDate: new Date()
+        }
+      )
+        return updatePost 
+      } catch(e) {
+        console.log(e.response.data)
+        throw new HttpException(
+        `Error updating post ${e.response.data}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+     }
+    }
 
   isImageUrl(url) {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];

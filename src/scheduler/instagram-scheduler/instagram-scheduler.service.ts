@@ -17,11 +17,13 @@ export class InstagramSchedulerService {
     @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
   ) {}
 
-  
+  @Cron('25 23 * * 2')
   async create(body: any) {
+
+    const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
     try {
 
-      const conn: any = await this.instagramConnService.findOne(body.firebaseUID);
+      const conn: any = await this.instagramConnService.findOne(firebaseUID);
       if (!conn.isExist) {
         throw new Error('Instagram connection not exist for this user');
       }
@@ -31,7 +33,7 @@ export class InstagramSchedulerService {
       const lastWeek = await this.instagramAnalysisRepository
         .createQueryBuilder('instagram_analysis')
         .select('instagram_analysis.weekNumber')
-        .where('instagram_analysis.firebaseUID = :firebaseUID', { firebaseUID: body.firebaseUID })
+        .where('instagram_analysis.firebaseUID = :firebaseUID', { firebaseUID: firebaseUID })
         .orderBy('instagram_analysis.weekNumber', 'DESC')
         .limit(1)
         .getOne();
@@ -117,14 +119,14 @@ export class InstagramSchedulerService {
       totalViews += viewsCount;
       totalInteractions += interactionsCount;
 
-      if (interactionsCount > maxPost) {
+      if (interactionsCount >= maxPost) {
         maxPost = interactionsCount;
         topPostID = post.id;
       }
 
       // Save Instagram post data to the database
       await this.instagramPostsRepository.save({
-        firebaseUID: body.firebaseUID,
+        firebaseUID: firebaseUID,
         postID: post.id,
         instagramID: conn.instagramID,
         userName: conn.userName,
@@ -155,7 +157,7 @@ export class InstagramSchedulerService {
 
      console.log(followersCount)
 
-     const analysis: any = await this.generateWeeklyAnalysis(body.firebaseUID, conn.instagramID, weeksAvailable, 
+     const analysis: any = await this.generateWeeklyAnalysis(firebaseUID, conn.instagramID, weeksAvailable, 
       conn.userName, startDate, endDate, totalPosts, 
       followersCount, totalLikes, totalComments, 
       totalShares, totalViews, totalReach, totalInteractions, 

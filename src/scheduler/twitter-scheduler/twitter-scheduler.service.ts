@@ -19,7 +19,7 @@ export class TwitterSchedulerService {
 
   ) {}
 
-  //@Cron('25 18 * * *')
+  @Cron('31 23 * * 2')
   async getTwitterTweets(body: any) {
     const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02';
     try {
@@ -80,7 +80,7 @@ export class TwitterSchedulerService {
       totalRetweets += tweet.public_metrics.retweet_count
       totalReplies += tweet.public_metrics.reply_count
       totalImpressions += tweet.public_metrics.impression_count
-      if(tweet.public_metrics.impression_count > maxImpressions) {
+      if(tweet.public_metrics.impression_count >= maxImpressions) {
         maxImpressions = tweet.public_metrics.impression_count
         topTweetID = tweet.id
       }

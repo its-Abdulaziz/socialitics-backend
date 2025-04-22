@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { FacebookPosts } from './entities/facebook-posts.entity';
 import { FacebookAnalysis } from './entities/facebook-analysis.entity';
 import axios from 'axios';
-
+import { Cron } from '@nestjs/schedule';
 @Injectable()
 export class FacebookSchedulerService {
   constructor(
@@ -15,10 +15,12 @@ export class FacebookSchedulerService {
     @InjectRepository(FacebookAnalysis) private readonly facebookAnalysisRepository: Repository<FacebookAnalysis>,
   ) 
   {}
+
+  @Cron('20 23 * * 2')
   async create(body: any) {
     try{
-      
-      const conn: any = await this.facebookConnService.findOne(body.firebaseUID);
+      const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
+      const conn: any = await this.facebookConnService.findOne(firebaseUID);
       if(conn.isExist != true) {
         throw new Error('Facebook connection not exist for this user');
       }
@@ -28,7 +30,7 @@ export class FacebookSchedulerService {
       const lastWeek = await this.facebookAnalysisRepository
       .createQueryBuilder('facebook_analysis')
       .select('facebook_analysis.weekNumber')
-      .where('facebook_analysis.firebaseUID = :firebaseUID', { firebaseUID: body.firebaseUID })  
+      .where('facebook_analysis.firebaseUID = :firebaseUID', { firebaseUID: firebaseUID })  
       .orderBy('facebook_analysis.weekNumber', 'DESC') 
       .limit(1)  
       .getOne(); 
@@ -77,13 +79,13 @@ export class FacebookSchedulerService {
         totalHahas += post.haha.summary.total_count
         totalLoves += post.heart.summary.total_count
 
-        if(post.likes.summary.total_count + post.haha.summary.total_count + post.heart.summary.total_count > maxPost){
+        if(post.likes.summary.total_count + post.haha.summary.total_count + post.heart.summary.total_count >= maxPost){
           maxPost = post.likes.summary.total_count + post.haha.summary.total_count + post.heart.summary.total_count
           topPostID = post.id
         }
 
         let savePost = await this.facebookPostsRepository.save({
-          firebaseUID: body.firebaseUID,
+          firebaseUID: firebaseUID,
           content: post.message,
           userName: conn.name,
           postID: post.id,
@@ -108,7 +110,7 @@ export class FacebookSchedulerService {
        })
        const followersCount = accountInfo.data.followers_count
 
-       const analysis = await this.generateWeeklyAnalysis(body.firebaseUID, 
+       const analysis = await this.generateWeeklyAnalysis(firebaseUID, 
         weeksAvailable, totalPosts, totalLikes, totalShares, totalComments, 
         totalHahas, totalLoves, conn.pageID, conn.name, 
         followersCount, topPostID, startDate, endDate)
