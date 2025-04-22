@@ -84,7 +84,7 @@ export class TiktokSchedulerService {
       totalComments += post.comment_count;
       totalViews += post.view_count;
 
-      if (post.view_count > maxViews) {
+      if (post.view_count >= maxViews) {
         maxViews = post.view_count;
         topPostID = post.id;
       }

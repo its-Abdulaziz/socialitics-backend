@@ -117,7 +117,7 @@ export class InstagramSchedulerService {
       totalViews += viewsCount;
       totalInteractions += interactionsCount;
 
-      if (interactionsCount > maxPost) {
+      if (interactionsCount >= maxPost) {
         maxPost = interactionsCount;
         topPostID = post.id;
       }

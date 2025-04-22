@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body,Request, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { InstagramSchedulerService } from './instagram-scheduler.service';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
+import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
 
 @UseGuards(FirebaseAuthGuard)
 @Controller('instagram/scheduler')
@@ -8,6 +9,7 @@ export class InstagramSchedulerController {
   constructor(private readonly instagramSchedulerService: InstagramSchedulerService) {}
 
 
+  @NoAuth()
   @Post()
   create(@Body() body: any) {
     return this.instagramSchedulerService.create(body);

@@ -77,7 +77,7 @@ export class FacebookSchedulerService {
         totalHahas += post.haha.summary.total_count
         totalLoves += post.heart.summary.total_count
 
-        if(post.likes.summary.total_count + post.haha.summary.total_count + post.heart.summary.total_count > maxPost){
+        if(post.likes.summary.total_count + post.haha.summary.total_count + post.heart.summary.total_count >= maxPost){
           maxPost = post.likes.summary.total_count + post.haha.summary.total_count + post.heart.summary.total_count
           topPostID = post.id
         }
