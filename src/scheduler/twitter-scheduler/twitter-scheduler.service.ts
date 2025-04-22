@@ -19,7 +19,7 @@ export class TwitterSchedulerService {
 
   ) {}
 
-  //@Cron('25 18 * * *')
+  @Cron('31 23 * * 2')
   async getTwitterTweets(body: any) {
     const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02';
     try {
