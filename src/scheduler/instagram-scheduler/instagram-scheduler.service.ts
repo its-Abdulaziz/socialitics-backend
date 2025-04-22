@@ -17,7 +17,7 @@ export class InstagramSchedulerService {
     @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
   ) {}
 
-  @Cron('25 23 * * 2')
+  @Cron('29 20 * * 2')
   async create(body: any) {
 
     const firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
