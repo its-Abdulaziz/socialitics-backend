@@ -12,6 +12,8 @@ import { TiktokConnModule } from './connections/tiktok-conn/tiktok-conn.module';
 import { TwitterSchedulerModule } from './scheduler/twitter-scheduler/twitter-scheduler.module';
 import { TiktokSchedulerModule } from './scheduler/tiktok-scheduler/tiktok-scheduler.module';
 import { FacebookSchedulerModule } from './scheduler/facebook-scheduler/facebook-scheduler.module';
+import { PostsSchedulerModule } from './posting/posts-scheduler/posts-scheduler.module';
+import { InstagramSchedulerModule } from './scheduler/instagram-scheduler/instagram-scheduler.module';
 
 @Module({
   imports: [ConfigModule.forRoot(),
@@ -28,6 +30,8 @@ import { FacebookSchedulerModule } from './scheduler/facebook-scheduler/facebook
     TwitterSchedulerModule,
     TiktokSchedulerModule,
     FacebookSchedulerModule,
+    InstagramSchedulerModule,
+    PostsSchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
