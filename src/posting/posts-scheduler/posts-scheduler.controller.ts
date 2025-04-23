@@ -58,7 +58,8 @@ export class PostsSchedulerController {
   }
 
   @Get('userPosts')
-  getUserPosts(@Query() firebaseUID: string, @Request() request: any) {
+  getUserPosts(@Query() query: any, @Request() request: any) {
+    const firebaseUID = query.firebaseUID 
     if(firebaseUID != request.currentUser.firebaseUID) {
       throw new HttpException(
         `You can view your own posts only!`,
