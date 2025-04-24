@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { TiktokAnalysis } from 'src/scheduler/tiktok-scheduler/entities/tiktok-analysis.entity';
 import { platform } from 'os';
+import { InstagramAnalysis } from 'src/scheduler/instagram-scheduler/entities/instagram-analysis.entity';
 @Injectable()
 export class DeepseekTipsService {
   private readonly openai: OpenAI;
@@ -19,6 +20,8 @@ export class DeepseekTipsService {
     @InjectRepository(performanceTips) private readonly performanceTipsRepository: Repository<performanceTips>,
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
     @InjectRepository(TiktokAnalysis) private readonly tiktokAnalysisRepository: Repository<TiktokAnalysis>,
+    @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
+
   ) {
     this.openai = new OpenAI({
       baseURL: 'https://api.deepseek.com',
@@ -31,7 +34,6 @@ export class DeepseekTipsService {
   try {
     const user = await this.usersRepository.findOne({ where: { firebaseUID } });
 
-    console.log(user)
     const latest = await this.tiktokAnalysisRepository
     .createQueryBuilder('tiktok_analysis')
     .where('tiktok_analysis.firebaseUID = :firebaseUID', { firebaseUID: firebaseUID })
@@ -107,10 +109,13 @@ export class DeepseekTipsService {
 
   async getTikTokTips(firebaseUID: string) {
 
+    try {
     const weeksTips = await this.performanceTipsRepository.find({
       where: {
-        firebaseUID: firebaseUID},
-        order: { weekNumber: 'ASC' }})
+        firebaseUID: firebaseUID,
+        platform: 'tikTok'
+      },
+      order: { weekNumber: 'ASC' }})
 
 
         let transformedData = {
@@ -129,9 +134,137 @@ export class DeepseekTipsService {
           })
         })
           
-    console.log(transformedData);
-    return transformedData
+      return transformedData
+    } catch (error) {
+      throw new HttpException(`Error getting TikTok tips from database: ${error}`, 
+        HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
+
+
+  async addInstagramTips(firebaseUID: any) {
+
+    try {
+
+      const user = await this.usersRepository.findOne({ where: { firebaseUID } });
+
+      const latest = await this.instagramAnalysisRepository
+      .createQueryBuilder('instagram_analysis')
+      .where('instagram_analysis.firebaseUID = :firebaseUID', { firebaseUID: firebaseUID })
+      .orderBy('instagram_analysis.weekNumber', 'DESC') 
+      .limit(2)  
+      .getMany();
+
+  
+      const thisWeek = latest[0];
+      const prevWeek = latest[1] ?? null;
+
+      console.log(thisWeek)
+      console.log(prevWeek)
+
+      const formatDiff = (diff: number) => (diff >= 0 ? `+${diff}` : `${diff}`);
+
+
+      const diffFollowers = prevWeek ? thisWeek.followersCount - prevWeek.followersCount : 0;
+      const diffPosts = prevWeek ? thisWeek.postsCount - prevWeek.postsCount : 0;
+      const diffLikes = prevWeek ? thisWeek.likesCount - prevWeek.likesCount : 0;
+      const diffComments = prevWeek ? thisWeek.commentsCount - prevWeek.commentsCount : 0;
+      const diffViews = prevWeek ? thisWeek.viewsCount - prevWeek.viewsCount : 0;
+      const diffReach = prevWeek ? thisWeek.reachCount - prevWeek.reachCount : 0;
+      const diffInteractions = prevWeek ? thisWeek.totalInteractions - prevWeek.totalInteractions : 0;
+      const diffEngagements = prevWeek ? (thisWeek.engagementRate - prevWeek.engagementRate) : 0;      
+
+      this.userMessage = {
+        "bio":user.bio,
+        "AccountWeekAnalysis": {
+            "weekNumber": thisWeek.weekNumber,
+            "totalFollowers": thisWeek.followersCount,
+            "diffTotalFollowers": formatDiff(diffFollowers),
+            "numOfPosts": thisWeek.postsCount,
+            "diffNumOfPosts": formatDiff(diffPosts),
+            "totalLikes": thisWeek.likesCount,
+            "diffTotalLikes": formatDiff(diffLikes),
+            "totalComments": thisWeek.commentsCount,
+            "diffTotalComments": formatDiff(diffComments),
+            "totalViews": thisWeek.viewsCount,
+            "diffTotalViews": formatDiff(diffViews),
+            "totalReach": thisWeek.reachCount,
+            "diffReach": formatDiff(diffReach),
+            "totalInteractions": thisWeek.totalInteractions,
+            "diffTotalInteractions": formatDiff(diffInteractions),
+            "engagementRate": thisWeek.engagementRate,
+            "diffEngagementRate": formatDiff(diffEngagements)
+        }
+      }
+
+      const newSystemMessage =  this.systemMessage.replaceAll(' Tiktok', 'n Instagram').trim()
+
+      
+      const completion = await this.openai.chat.completions.create({
+        messages: [{ role: "system", content: newSystemMessage }, 
+                   { role: "user", content: JSON.stringify(this.userMessage)}],
+        model: "deepseek-reasoner",
+      }).catch((error) => {
+        throw new HttpException(`Error from deepseek api: ${error.response.data}`, 
+          HttpStatus.INTERNAL_SERVER_ERROR);
+      });
+
+      console.log(completion.choices[0].message.content)
+
+      const tipsArray = completion.choices[0].message.content.split(' | ');
+
+    
+      const tip = await this.performanceTipsRepository.save({
+        firebaseUID: firebaseUID,
+        weekNumber: thisWeek.weekNumber,
+        platform: 'instagram',
+        tips: tipsArray,
+      });
+  
+      console.log("Tips from week number " + thisWeek.weekNumber + " for user " + firebaseUID + " added to database")
+  
+      return true
+    } catch (error) {
+      throw new HttpException(`Error adding Instagram tips to database: ${error.Response.data}`, 
+        HttpStatus.INTERNAL_SERVER_ERROR)
+   }
+
+  }
+
+  async getInstagramTips(firebaseUID: string) {
+
+    try {
+    const weeksTips = await this.performanceTipsRepository.find({
+      where: {
+        firebaseUID: firebaseUID,
+        platform: 'instagram'
+      },
+      order: { weekNumber: 'ASC' }})
+
+
+        let transformedData = {
+          firebaseUID: weeksTips[0].firebaseUID,
+          platform: 'instagram',
+          data: []
+        }
+        
+        weeksTips.forEach(week => {
+          week.tips.forEach(tip => {
+            tip.replaceAll('\'', '').trim()
+          })
+          transformedData.data.push({
+            weekNumber: week.weekNumber,
+            tips: week.tips
+          })
+        })
+          
+      return transformedData
+    } catch (error) {
+      throw new HttpException(`Error getting Instagram tips from database: ${error.Response.data}`, 
+        HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
   create(createDeepseekTipDto: CreateDeepseekTipDto) {
     return 'This action adds a new deepseekTip';
   }
