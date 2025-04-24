@@ -8,8 +8,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { User } from 'src/user/entities/user.entity';
 import { TiktokAnalysis } from 'src/scheduler/tiktok-scheduler/entities/tiktok-analysis.entity';
 import { InstagramAnalysis } from 'src/scheduler/instagram-scheduler/entities/instagram-analysis.entity';
+import { TwitterAnalysis } from 'src/scheduler/twitter-scheduler/entities/twitter-analysis.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([performanceTips, User, TiktokAnalysis, InstagramAnalysis ]), 
+  imports: [TypeOrmModule.forFeature([performanceTips, User, TiktokAnalysis, InstagramAnalysis, TwitterAnalysis ]), 
   FirebaseModule,
 ScheduleModule.forRoot()],
   controllers: [DeepseekTipsController],
