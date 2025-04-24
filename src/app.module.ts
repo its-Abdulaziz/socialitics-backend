@@ -14,6 +14,7 @@ import { TiktokSchedulerModule } from './scheduler/tiktok-scheduler/tiktok-sched
 import { FacebookSchedulerModule } from './scheduler/facebook-scheduler/facebook-scheduler.module';
 import { PostsSchedulerModule } from './posting/posts-scheduler/posts-scheduler.module';
 import { InstagramSchedulerModule } from './scheduler/instagram-scheduler/instagram-scheduler.module';
+import { DeepseekTipsModule } from './deepseek/deepseek-tips/deepseek-tips.module';
 
 @Module({
   imports: [ConfigModule.forRoot(),
@@ -32,6 +33,7 @@ import { InstagramSchedulerModule } from './scheduler/instagram-scheduler/instag
     FacebookSchedulerModule,
     InstagramSchedulerModule,
     PostsSchedulerModule,
+    DeepseekTipsModule
   ],
   controllers: [AppController],
   providers: [AppService],

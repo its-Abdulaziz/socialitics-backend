@@ -32,11 +32,6 @@ export class TwitterSchedulerController {
     return this.twitterSchedulerService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.twitterSchedulerService.findOne(+id);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTwitterSchedulerDto: any) {
     return this.twitterSchedulerService.update(+id, updateTwitterSchedulerDto);

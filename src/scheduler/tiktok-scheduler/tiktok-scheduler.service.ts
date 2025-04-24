@@ -6,12 +6,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { Cron } from '@nestjs/schedule';
+import { DeepseekTipsService } from 'src/deepseek/deepseek-tips/deepseek-tips.service';
 @Injectable()
 export class TiktokSchedulerService {
 
   constructor(    
     @Inject(forwardRef(() => TiktokConnService))
     private readonly tiktokConnService: TiktokConnService,
+    @Inject(forwardRef(() => DeepseekTipsService))
+    private readonly deepseekTipsService: DeepseekTipsService,
     @InjectRepository(TiktokPosts) private readonly tiktokPostsRepository: Repository<TiktokPosts>,
     @InjectRepository(TiktokAnalysis) private readonly tiktokAnalysisRepository: Repository<TiktokAnalysis>,
   ) {}
@@ -126,6 +129,7 @@ export class TiktokSchedulerService {
 
        if(analysis) {
         console.log("Tiktok Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)
+        await this.deepseekTipsService.addTiktokTips(firebaseUID)
         return true
       }
        return false       
