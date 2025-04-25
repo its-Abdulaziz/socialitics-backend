@@ -10,7 +10,7 @@ import { TiktokConnService } from 'src/connections/tiktok-conn/tiktok-conn.servi
 import axios from 'axios';
 import { InstagramConnService } from 'src/connections/instagram-conn/instagram-conn.service';
 import { FacebookConnService } from 'src/connections/facebook-conn/facebook-conn.service';
-
+import { Cron } from '@nestjs/schedule';
 @Injectable()
 export class PostsSchedulerService {
   constructor(
@@ -21,6 +21,7 @@ export class PostsSchedulerService {
     @InjectRepository(PostsScheduler) private readonly postsSchedulerRepository: Repository<PostsScheduler>,
   ) {}
 
+  //@Cron('* * * * *')
   async getScheduledPosts() {
     const date = new Date()
     date.setHours(date.getHours() + 3)
@@ -30,7 +31,7 @@ export class PostsSchedulerService {
         status: 'scheduled',
       }
     })
-    console.log(posts)
+    console.log('posts to be published ',posts)
     for(const post of posts) {
       if(post.platform === 'twitter') {
         await this.publishPostTwitter(post)
@@ -338,10 +339,15 @@ export class PostsSchedulerService {
 
   }
 
-  getUserPosts(firebaseUID: string) {
+  async getUserPosts(firebaseUID: string) {
     try {
 
-    return this.postsSchedulerRepository.find({where: {firebaseUID: firebaseUID}})
+    return await this.postsSchedulerRepository.find(
+      {
+        where: {firebaseUID: firebaseUID},
+        order: {
+         scheduleDate: 'DESC'}
+        })
     
   } catch(e) {
       console.log(e)
@@ -388,7 +394,7 @@ export class PostsSchedulerService {
           HttpStatus.UNAUTHORIZED
         );
       }
-      
+
     const deletePost = await this.postsSchedulerRepository.delete(
       {postID: body.postID}
     )

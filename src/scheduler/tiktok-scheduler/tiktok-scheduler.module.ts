@@ -8,10 +8,12 @@ import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TiktokPosts } from './entities/tiktok-posts.entity';
 import { TiktokAnalysis } from './entities/tiktok-analysis.entity';
+import { DeepseekTipsModule } from 'src/deepseek/deepseek-tips/deepseek-tips.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TiktokConn, TiktokPosts, TiktokAnalysis ]), 
   forwardRef(() => TiktokConnModule), 
+  DeepseekTipsModule,
   FirebaseModule,
 ScheduleModule.forRoot()],
   controllers: [TiktokSchedulerController],

@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { Cron } from '@nestjs/schedule';
+import { DeepseekTipsService } from 'src/deepseek/deepseek-tips/deepseek-tips.service';
 
 
 @Injectable()
@@ -13,6 +14,8 @@ export class InstagramSchedulerService {
   constructor(    
     @Inject(forwardRef(() => InstagramConnService))
     private readonly instagramConnService: InstagramConnService,
+    @Inject(forwardRef(() => DeepseekTipsService))
+    private readonly deepseekTipsService: DeepseekTipsService,
     @InjectRepository(InstagramPosts) private readonly instagramPostsRepository: Repository<InstagramPosts>,
     @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
   ) {}
@@ -165,6 +168,7 @@ export class InstagramSchedulerService {
 
       if(analysis) {
         console.log("instagram analysis successfully saved for week ", weeksAvailable + 1, "for user ", conn.userName )
+        await this.deepseekTipsService.addInstagramTips(firebaseUID)
         return true
       }
       return false

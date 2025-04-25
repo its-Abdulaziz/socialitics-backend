@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { TwitterAnalysis } from './entities/twitter-analysis.entity';
 import axios from 'axios';
 import { query } from 'express';
+import { DeepseekTipsService } from 'src/deepseek/deepseek-tips/deepseek-tips.service';
 
 @Injectable()
 export class TwitterSchedulerService {
@@ -14,6 +15,8 @@ export class TwitterSchedulerService {
   constructor(
     @Inject(forwardRef(() => TwitterConnService))
     private readonly twitterConnService: TwitterConnService,
+    @Inject(forwardRef(() => DeepseekTipsService))
+    private readonly deepseekTipsService: DeepseekTipsService,
     @InjectRepository(Tweets) private readonly tweetsRepository: Repository<Tweets>,
     @InjectRepository(TwitterAnalysis) private readonly twitterAnalysisRepository: Repository<TwitterAnalysis>,
 
@@ -116,6 +119,7 @@ export class TwitterSchedulerService {
      const analysisData = await this.generateWeekAnalysis(lastEndDate, newEndDate, totalTweets, totalLikes, totalRetweets, totalReplies, totalImpressions, weeksAvailable, followersCount, firebaseUID, conn.twitterID, conn.userName, topTweetID)
      if(analysisData) {
       console.log("Twitter Analysis data saved successfully for user ", conn.userName, " for week ", weeksAvailable + 1)
+      await this.deepseekTipsService.addTwitterTips(firebaseUID)
      }
      return true
    } catch (error) {

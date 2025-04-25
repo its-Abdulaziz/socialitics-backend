@@ -8,12 +8,14 @@ import { InstagramConnModule } from 'src/connections/instagram-conn/instagram-co
 import { FirebaseModule } from 'src/lib/plugin/firebase/firebase.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
+import { DeepseekTipsModule } from 'src/deepseek/deepseek-tips/deepseek-tips.module';
 
 
 @Module({
   imports: [TypeOrmModule.forFeature([InstagramConn, InstagramPosts, InstagramAnalysis ]), 
   forwardRef(() => InstagramConnModule), 
   FirebaseModule,
+  DeepseekTipsModule,
 ScheduleModule.forRoot()],
   controllers: [InstagramSchedulerController],
   providers: [InstagramSchedulerService],
