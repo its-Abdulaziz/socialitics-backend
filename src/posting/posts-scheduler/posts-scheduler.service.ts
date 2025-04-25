@@ -339,10 +339,15 @@ export class PostsSchedulerService {
 
   }
 
-  getUserPosts(firebaseUID: string) {
+  async getUserPosts(firebaseUID: string) {
     try {
 
-    return this.postsSchedulerRepository.find({where: {firebaseUID: firebaseUID}})
+    return await this.postsSchedulerRepository.find(
+      {
+        where: {firebaseUID: firebaseUID},
+        order: {
+         scheduleDate: 'DESC'}
+        })
     
   } catch(e) {
       console.log(e)
