@@ -29,6 +29,12 @@ export class DeepseekTipsController {
     return this.deepseekTipsService.addTwitterTips(body.firebaseUID);
   }
 
+  @NoAuth()
+  @Post('generate/facebook')
+  generateFacebook(@Query() body: any) {
+    return this.deepseekTipsService.addFacebookTips(body.firebaseUID);
+  }
+
   @Get('tiktok/tips')
   getTiktokTips(@Query() body: any, @Request() req: any) {
     if(body.firebaseUID != req.currentUser.firebaseUID){
@@ -61,6 +67,17 @@ export class DeepseekTipsController {
       );
     }
     return this.deepseekTipsService.getTwitterTips(body.firebaseUID);
+  }
+
+  @Get('facebook/tips')
+  getFacebookTips(@Query() body: any, @Request() req: any) {
+    if(body.firebaseUID != req.currentUser.firebaseUID){
+      throw new HttpException(
+        `You can can get only your own data!`,
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+    return this.deepseekTipsService.getFacebookTips(body.firebaseUID);
   }
 
   @Get(':id')

@@ -168,7 +168,7 @@ export class InstagramSchedulerService {
 
       if(analysis) {
         console.log("instagram analysis successfully saved for week ", weeksAvailable + 1, "for user ", conn.userName )
-        this.deepseekTipsService.addInstagramTips(firebaseUID)
+        await this.deepseekTipsService.addInstagramTips(firebaseUID)
         return true
       }
       return false

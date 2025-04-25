@@ -6,11 +6,14 @@ import { FacebookPosts } from './entities/facebook-posts.entity';
 import { FacebookAnalysis } from './entities/facebook-analysis.entity';
 import axios from 'axios';
 import { Cron } from '@nestjs/schedule';
+import { DeepseekTipsService } from 'src/deepseek/deepseek-tips/deepseek-tips.service';
 @Injectable()
 export class FacebookSchedulerService {
   constructor(
     @Inject(forwardRef(() => FacebookConnService))
     private readonly facebookConnService: FacebookConnService,
+    @Inject(forwardRef(() => DeepseekTipsService))
+    private readonly deepseekTipsService: DeepseekTipsService,
     @InjectRepository(FacebookPosts) private readonly facebookPostsRepository: Repository<FacebookPosts>,
     @InjectRepository(FacebookAnalysis) private readonly facebookAnalysisRepository: Repository<FacebookAnalysis>,
   ) 
@@ -117,6 +120,7 @@ export class FacebookSchedulerService {
 
         if(analysis) {
           console.log("facebook analysis successfully saved for week ", weeksAvailable + 1, "for user ", conn.name )
+          await this.deepseekTipsService.getFacebookTips(firebaseUID)
           return true
         }
         return false

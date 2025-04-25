@@ -10,6 +10,7 @@ import { TiktokAnalysis } from 'src/scheduler/tiktok-scheduler/entities/tiktok-a
 import { platform } from 'os';
 import { InstagramAnalysis } from 'src/scheduler/instagram-scheduler/entities/instagram-analysis.entity';
 import { TwitterAnalysis } from 'src/scheduler/twitter-scheduler/entities/twitter-analysis.entity';
+import { FacebookAnalysis } from 'src/scheduler/facebook-scheduler/entities/facebook-analysis.entity';
 @Injectable()
 export class DeepseekTipsService {
   private readonly openai: OpenAI;
@@ -23,6 +24,7 @@ export class DeepseekTipsService {
     @InjectRepository(TiktokAnalysis) private readonly tiktokAnalysisRepository: Repository<TiktokAnalysis>,
     @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
     @InjectRepository(TwitterAnalysis) private readonly twitterAnalysisRepository: Repository<TwitterAnalysis>,
+    @InjectRepository(FacebookAnalysis) private readonly facebookAnalysisRepository: Repository<FacebookAnalysis>,
 
   ) {
     this.openai = new OpenAI({
@@ -385,7 +387,132 @@ export class DeepseekTipsService {
       
   }
 
+  async addFacebookTips(firebaseUID: string){
 
+    try {
+
+      const user = await this.usersRepository.findOne({ where: { firebaseUID } });
+
+      const latest = await this.facebookAnalysisRepository
+      .createQueryBuilder('facebook_analysis')
+      .where('facebook_analysis.firebaseUID = :firebaseUID', { firebaseUID: firebaseUID })
+      .orderBy('facebook_analysis.weekNumber', 'DESC') 
+      .limit(2)  
+      .getMany();
+
+  
+      const thisWeek = latest[0];
+      const prevWeek = latest[1] ?? null;
+
+      console.log(thisWeek)
+      console.log(prevWeek)
+
+
+      const diffFollowers = prevWeek ? thisWeek.followersCount - prevWeek.followersCount : 0;
+      const diffPosts = prevWeek ? thisWeek.postsCount - prevWeek.postsCount : 0;
+      const diffLikes = prevWeek ? thisWeek.likesCount - prevWeek.likesCount : 0;
+      const diffComments = prevWeek ? thisWeek.commentsCount - prevWeek.commentsCount : 0;
+      const diffHearts = prevWeek ? thisWeek.loveCount - prevWeek.loveCount : 0;
+      const diffHahas = prevWeek ? thisWeek.hahaCount - prevWeek.hahaCount : 0;
+      const diffShares = prevWeek ? thisWeek.sharesCount - prevWeek.sharesCount : 0;
+      const diffEngagements = prevWeek ? thisWeek.engagementRate - prevWeek.engagementRate : 0;
+      
+      const formatDiff = (diff: number) => (diff >= 0 ? `+${diff}` : `${diff}`);
+    
+      this.userMessage = {
+        "bio":user.bio,
+        "AccountWeekAnalysis": {
+            "weekNumber": thisWeek.weekNumber,
+            "totalFollowers": thisWeek.followersCount,
+            "diffTotalFollowers": formatDiff(diffFollowers),
+            "numOfPosts": thisWeek.postsCount,
+            "diffNumOfPosts": formatDiff(diffPosts),
+            "totalLikes": thisWeek.likesCount,
+            "diffTotalLikes": formatDiff(diffLikes),
+            "totalComments": thisWeek.commentsCount,
+            "diffTotalComments": formatDiff(diffComments),
+            "totalLove": thisWeek.loveCount,
+            "diffTotalLove": formatDiff(diffHearts),
+            "totalHahas": thisWeek.hahaCount,
+            "diffTotalHahas": formatDiff(diffHahas),
+            "totalShares": thisWeek.sharesCount,
+            "diffTotalShares": formatDiff(diffShares),
+            "engagementRate": thisWeek.engagementRate,
+            "diffEngagementRate": formatDiff(diffEngagements)
+        }
+      }
+
+      const newSystemMessage =  this.systemMessage.replaceAll('Tiktok', 'Facebook').trim()
+
+      
+      const completion = await this.openai.chat.completions.create({
+        messages: [{ role: "system", content: newSystemMessage }, 
+                   { role: "user", content: JSON.stringify(this.userMessage)}],
+        model: "deepseek-reasoner",
+      }).catch((error) => {
+        throw new HttpException(`Error from deepseek api: ${error.response.data}`, 
+          HttpStatus.INTERNAL_SERVER_ERROR);
+      });
+
+      console.log(completion.choices[0].message.content)
+
+      const tipsArray = completion.choices[0].message.content.split(' | ');
+
+    
+      
+      const tip = await this.performanceTipsRepository.save({
+        firebaseUID: firebaseUID,
+        weekNumber: thisWeek.weekNumber,
+        platform: 'facebook',
+        tips: tipsArray,
+      });
+  
+      console.log("Tips from week number " + thisWeek.weekNumber + " for user " + firebaseUID + " added to database")
+  
+      return true
+      
+    } catch (error) {
+      throw new HttpException(`Error adding Facebook tips to database: ${error.Response.data}`, 
+        HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+
+  }
+
+  async getFacebookTips(firebaseUID: string){
+
+    try {
+      const weeksTips = await this.performanceTipsRepository.find({
+        where: {
+          firebaseUID: firebaseUID,
+          platform: 'facebook'
+        },
+        order: { weekNumber: 'ASC' }})
+  
+  
+          let transformedData = {
+            firebaseUID: weeksTips[0].firebaseUID,
+            platform: 'facebook',
+            data: []
+          }
+          
+          weeksTips.forEach(week => {
+            week.tips.forEach(tip => {
+              tip.replaceAll('\'', '').trim()
+            })
+            transformedData.data.push({
+              weekNumber: week.weekNumber,
+              tips: week.tips
+            })
+          })
+            
+        return transformedData
+      } catch (error) {
+        throw new HttpException(`Error getting Twitter tips from database: ${error.Response.data}`, 
+          HttpStatus.INTERNAL_SERVER_ERROR)
+      }
+
+  }
   create(createDeepseekTipDto: CreateDeepseekTipDto) {
     return 'This action adds a new deepseekTip';
   }

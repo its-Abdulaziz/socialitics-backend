@@ -8,11 +8,13 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { FacebookAnalysis } from './entities/facebook-analysis.entity';
 import { FacebookConnModule } from 'src/connections/facebook-conn/facebook-conn.module';
 import { FacebookPosts } from './entities/facebook-posts.entity';
+import { DeepseekTipsModule } from 'src/deepseek/deepseek-tips/deepseek-tips.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([FacebookConn, FacebookPosts, FacebookAnalysis ]), 
   forwardRef(() => FacebookConnModule), 
   FirebaseModule,
+  DeepseekTipsModule,
 ScheduleModule.forRoot()],
   controllers: [FacebookSchedulerController],
   providers: [FacebookSchedulerService],
