@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600">
+  <style>
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      line-height: 1.6;
+      direction: ltr;
+      text-align: left;
+      margin: 20px;
+      background-color: #f6f1f2;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      font-size: 22px;
+      font-weight: bold;
+      color: #C14A54;
+      margin-bottom: 20px;
+    }
+    .details {
+      margin-top: 20px;
+      color: #818FA6;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #777;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+    }
+    .greeting {
+      font-size: 16px;
+      color: #555;
+    }
+    .highlight {
+      color: #818FA6;
+    }
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #ffffff;
+      background-color: #818FA6;
+      text-decoration: none;
+      border-radius: 5px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="header">Hey <span class="highlight">{{ name }}</span>,</p>
+    <p class="greeting">Thanks for using <strong>Socialitics</strong>!</p>
+    <p>Your monthly performance report is ready!</p>
+    <div class="details">
+      <p><strong>Created At: </strong> <span class="highlight">{{ createdAt }}</span></p>
+    </div>
+    <a href="{{ fireUrl }}" class="button">Download Report</a>
+  </div>
+  <div class="footer">
+    <p>Sincerely, Socialitics Team</p>
+  </div>
+</body>
+</html>
