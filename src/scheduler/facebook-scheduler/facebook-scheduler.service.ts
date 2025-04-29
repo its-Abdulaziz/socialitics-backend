@@ -63,7 +63,7 @@ export class FacebookSchedulerService {
 
       const today = new Date();  
       const lastWeekDate = new Date(today); 
-      lastWeekDate.setDate(today.getDate() - 21);  
+      lastWeekDate.setDate(today.getDate() - 7);  
             
       const lastWeekPosts = posts.filter(post => {
           const postDate = new Date(post.created_time);  
@@ -120,7 +120,7 @@ export class FacebookSchedulerService {
 
         if(analysis) {
           console.log("facebook analysis successfully saved for week ", weeksAvailable + 1, "for user ", conn.name )
-          await this.deepseekTipsService.getFacebookTips(firebaseUID)
+          await this.deepseekTipsService.addFacebookTips(firebaseUID)
           return true
         }
         return false
