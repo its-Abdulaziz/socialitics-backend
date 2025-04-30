@@ -21,7 +21,7 @@ export class PostsSchedulerService {
     @InjectRepository(PostsScheduler) private readonly postsSchedulerRepository: Repository<PostsScheduler>,
   ) {}
 
-  //@Cron('* * * * *')
+  @Cron('0 0 * * *')
   async getScheduledPosts() {
     const date = new Date()
     date.setHours(date.getHours() + 3)
@@ -230,7 +230,7 @@ export class PostsSchedulerService {
     let requestBody1 = { creation_id: uploadMedia.data.id}
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    await delay(10000)
+    await delay(20000)
 
     const publishMedia = await axios.post(`https://graph.instagram.com/${conn.instagramID}/media_publish?access_token=${conn.accessToken}`, requestBody1)
     .catch((error) => {
