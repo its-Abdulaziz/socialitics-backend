@@ -39,8 +39,10 @@ export class ReportSchedulerService {
   ){}
 
 
+  @Cron('0 1 1 * *')
   async create(firebaseUID: string) {
 
+    firebaseUID = 'VpJOUX05QSh86FNf44Gb4jGYEF02'
     try {
     
     const user = await this.userRepo.findOne({ where: { firebaseUID } });
@@ -51,9 +53,9 @@ export class ReportSchedulerService {
 
     const now = new Date();
 
-    const firstDayOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const firstDayOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
     const twitterData = await this.twitterAnalysisRepo.find(
       { 
@@ -94,6 +96,7 @@ export class ReportSchedulerService {
 
     const save = await this.uploadToR2(fileName, xlsxBuffer)
 
+    console.log(`report ${fileName} uploaded to R2`)
 
     const command = new GetObjectCommand({
       Bucket: process.env.R2_BUCKET,
@@ -101,9 +104,22 @@ export class ReportSchedulerService {
       ResponseContentDisposition: 'attachment; filename="report-file.xlsx"',
     });
 
-    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 604000 });
 
     await this.mailService.sendSuccessEmail(firebaseUID, url)
+
+    console.log(`report ${fileName} sent to ${user.email}`)
+
+    await this.reportSchedulerRepo.save(
+      { 
+        firebaseUID: firebaseUID, 
+        month: new Date(now.getFullYear(), now.getMonth(), 1), 
+        fileUrl: `report/${fileName}`,
+        generatedAt: new Date()
+      }
+    )
+
+    console.log(`report ${fileName} saved`)
 
      } catch (error) {
       throw new HttpException(error.message, error.status);
