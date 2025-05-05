@@ -29,8 +29,8 @@ export class InstagramConnController {
     return this.instagramConnService.update(+id, updateInstagramConnDto);
   }
 
-  @Delete(':firebaseUID')
-  remove(@Query('firebaseUID') firebaseUID: string, @Request() req) {
-    return this.instagramConnService.remove(firebaseUID, req);
+  @Delete('delete')
+  remove(@Body() body: any, @Request() req) {
+    return this.instagramConnService.remove(body.firebaseUID, req);
   }
 }

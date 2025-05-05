@@ -136,7 +136,7 @@ export class TwitterConnService {
     return `This action updates a #${id} twitterConn`;
   }
 
-  async remove(firebaseUID: string, req: any) {
+  async remove(firebaseUID: any, req: any) {
     if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
     }
@@ -146,7 +146,8 @@ export class TwitterConnService {
         { TwitterUserName: null })
       await this.tweetsRepository.delete({ firebaseUID })
       await this.twitterAnalysisRepository.delete({ firebaseUID })
-      return res
+      console.log("User ", firebaseUID, " twitter connection removed from database")
+      return true
     }
     catch (error) {
       throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR

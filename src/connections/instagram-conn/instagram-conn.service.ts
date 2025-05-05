@@ -6,12 +6,17 @@ import { InstagramConn } from './entities/instagram-conn.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import axios from 'axios';
+import { InstagramAnalysis } from 'src/scheduler/instagram-scheduler/entities/instagram-analysis.entity';
+import { InstagramPosts } from 'src/scheduler/instagram-scheduler/entities/instagram-posts.entity';
 
 @Injectable()
 export class InstagramConnService {
   constructor(
     @InjectRepository(InstagramConn) private readonly instagramConnRepository: Repository<InstagramConn>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(InstagramAnalysis) private readonly instagramAnalysisRepository: Repository<InstagramAnalysis>,
+    @InjectRepository(InstagramPosts) private readonly instagramPostsRepository: Repository<InstagramPosts>,
+
     
   ) {}
   // TO DO: check validity of access_token when making requests to instagram, access token should be renewd before it expire, otherwise we have to make a new connection
@@ -124,7 +129,7 @@ export class InstagramConnService {
     return `This action updates a #${id} instagramConn`;
   }
 
-  async remove(firebaseUID: string, req: any) {
+  async remove(firebaseUID: any, req: any) {
     if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
     }
@@ -132,7 +137,10 @@ export class InstagramConnService {
       const res = await this.instagramConnRepository.delete({ firebaseUID })
       await this.userRepository.update(firebaseUID , 
         { InstagramUserName: null })
-      return res
+      await this.instagramAnalysisRepository.delete({ firebaseUID })
+      await this.instagramPostsRepository.delete({ firebaseUID })
+      console.log("User ", firebaseUID, " instagram connection removed from database")
+      return true
     }
     catch (error) {
       throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR

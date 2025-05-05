@@ -135,7 +135,7 @@ export class FacebookConnService {
     return `This action updates a #${id} facebookConn`;
   }
 
-  async remove(firebaseUID: string, req: any) {
+  async remove(firebaseUID: any, req: any) {
     if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
     }
@@ -143,7 +143,10 @@ export class FacebookConnService {
       const res = await this.facebookConnRepository.delete({ firebaseUID })
       await this.userRepository.update(firebaseUID , 
         { FaceBookUserName: null })
-      return res
+      await this.facebookAnalysisRepository.delete({ firebaseUID })
+      await this.facebookPostsRepository.delete({ firebaseUID })
+      console.log("User ", firebaseUID, " facebook connection removed from database")
+      return true
     }
     catch (error) {
       throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR
