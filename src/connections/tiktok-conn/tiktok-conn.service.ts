@@ -124,7 +124,7 @@ export class TiktokConnService {
     return `This action updates a #${id} tiktokConn`;
   }
 
-  async remove(firebaseUID: string, req: any) {
+  async remove(firebaseUID: any, req: any) {
     if(firebaseUID != req.currentUser.firebaseUID) {
       throw new HttpException("You can remove only your own data",HttpStatus.BAD_REQUEST)
     }
@@ -134,7 +134,8 @@ export class TiktokConnService {
         { TiktokUserName: null })
       await this.tiktokAnalysisRepository.delete({ firebaseUID })
       await this.tiktokPostsRepository.delete({ firebaseUID })
-      return res
+      console.log("User ", firebaseUID, " tiktok connection removed from database")
+      return true
     }
     catch (error) {
       throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR

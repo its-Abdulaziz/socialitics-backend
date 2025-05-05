@@ -31,9 +31,9 @@ export class TiktokConnController {
     return this.tiktokConnService.update(+id, updateTiktokConnDto);
   }
 
-  @Delete(':firebaseUID')
-  remove(@Param('firebaseUID') firebaseUID: string, @Request() req) {
-    return this.tiktokConnService.remove(firebaseUID, req);
+  @Delete('delete')
+  remove(@Body() body: any, @Request() req) {
+    return this.tiktokConnService.remove(body.firebaseUID, req);
   }
 
   @NoAuth()

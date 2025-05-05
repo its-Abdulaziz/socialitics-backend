@@ -29,8 +29,8 @@ export class FacebookConnController {
     return this.facebookConnService.update(+id, updateFacebookConnDto);
   }
 
-  @Delete(':firebaseUID')
-  remove(@Param('firebaseUID') firebaseUID: string, @Request() req) {
-    return this.facebookConnService.remove(firebaseUID, req);
+  @Delete('delete')
+  remove(@Body() body: any, @Request() req) {
+    return this.facebookConnService.remove(body.firebaseUID, req);
   }
 }
