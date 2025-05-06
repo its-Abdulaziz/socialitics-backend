@@ -6,34 +6,32 @@ import { GetUserDto } from './dto/get-user.dto';
 import { query } from 'express';
 import { NoAuth } from 'src/lib/decorators/no-auth.decorator';
 import { FirebaseAuthGuard } from 'src/lib/guard/firebaseAuth.guard';
+import { AdminGuard } from 'src/lib/guard/admin.guard';
 
-@UseGuards(FirebaseAuthGuard)
 @Controller('api/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
   
   @Post()
-  @NoAuth()
   create(@Body() body: CreateUserDto) {
     return this.userService.create(body);
   }
 
+  @UseGuards(AdminGuard)
   @Get('/all')
   findAll() {
     return this.userService.findAll();
   }
 
   @Get('/details')
-  @NoAuth()
   findOne(@Query() query: GetUserDto) {
     return this.userService.findOne(query.firebaseUID);
   }
 
   @Get()
-  @NoAuth()
   async checkExist(@Query() query: GetUserDto) {
     const userExist = await this.userService.checkExist(query.firebaseUID);
-    return {isExist: userExist};
+    return userExist;
   }
 
   @Patch(':id')
@@ -41,8 +39,20 @@ export class UserController {
     return this.userService.update(+id, updateUserDto);
   }
 
+  @UseGuards(FirebaseAuthGuard)
   @Delete(':firebaseUID')
   remove(@Query('firebaseUID') firebaseUID: string, @Request() req) {
     return this.userService.remove(firebaseUID, req);
+  }
+
+  @Post('/admin/login')
+  adminLogin(@Body() body: any) {
+    return this.userService.adminLogin(body);
+  }
+
+  @Post('/suspend')
+  @UseGuards(AdminGuard)
+  suspendUser(@Body() body: any) {
+    return this.userService.suspendUser(body.firebaseUID);
   }
 }
