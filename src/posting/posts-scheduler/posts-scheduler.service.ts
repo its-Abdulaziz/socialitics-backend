@@ -21,7 +21,7 @@ export class PostsSchedulerService {
     @InjectRepository(PostsScheduler) private readonly postsSchedulerRepository: Repository<PostsScheduler>,
   ) {}
 
-  @Cron('0 0 * * *')
+  @Cron('* * * * *')
   async getScheduledPosts() {
     const date = new Date()
     date.setHours(date.getHours() + 3)
