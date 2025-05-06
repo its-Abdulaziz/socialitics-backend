@@ -12,13 +12,19 @@ import { InstagramConnModule } from 'src/connections/instagram-conn/instagram-co
 import { FacebookConnModule } from 'src/connections/facebook-conn/facebook-conn.module';
 import { TwitterConnModule } from 'src/connections/twitter-conn/twitter-conn.module';
 import { TiktokConnModule } from 'src/connections/tiktok-conn/tiktok-conn.module';
+import { Admin } from './entities/admin.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, TwitterConn, TiktokConn, FacebookConn, InstagramConn]),FirebaseModule, 
+  imports: [TypeOrmModule.forFeature([User, Admin, TwitterConn, TiktokConn, FacebookConn, InstagramConn]),FirebaseModule, 
   forwardRef(() => InstagramConnModule), 
   forwardRef(() => FacebookConnModule), 
   forwardRef(() => TwitterConnModule), 
-  forwardRef(() => TiktokConnModule)],
+  forwardRef(() => TiktokConnModule),
+  JwtModule.register({
+    secret: 'SocialiticsAdmin', 
+    signOptions: { expiresIn: '1h' },
+  })],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

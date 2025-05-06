@@ -35,4 +35,7 @@ export class User {
 
     @Column({ nullable: true })
     TiktokUserName: string;
+
+    @Column({ nullable: true })
+    status: string;
 }

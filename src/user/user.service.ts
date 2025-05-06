@@ -9,16 +9,22 @@ import { TwitterConnService } from 'src/connections/twitter-conn/twitter-conn.se
 import { TiktokConnService } from 'src/connections/tiktok-conn/tiktok-conn.service';
 import { InstagramConnService } from 'src/connections/instagram-conn/instagram-conn.service';
 import { FacebookConnService } from 'src/connections/facebook-conn/facebook-conn.service';
+import { Admin } from './entities/admin.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Admin) private readonly adminRepository: Repository<Admin>,
+
     private dataSource: DataSource,
     private tiktokService: TiktokConnService,
     private twitterService: TwitterConnService,
     private instagramService: InstagramConnService,
     private facebookService: FacebookConnService,
+    private readonly jwtService: JwtService,
+
   ) {}
 
   create(createUserDto: CreateUserDto) {
@@ -38,12 +44,23 @@ export class UserService {
   }
 
   findAll() {
-    return this.userRepository.find();
+    try {
+    return this.userRepository.find({
+      select: ['firebaseUID', 'name', 'email']
+    });
+    } catch (error) {
+      throw new HttpException(`Error finding data from database:`, HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+
   }
 
-  checkExist(firebaseUID: string) {
-    console.log(this.userRepository.exists({ where: { firebaseUID } }))
-    return this.userRepository.exists({ where: { firebaseUID } });
+  async checkExist(firebaseUID: string) {
+    const user = await this.userRepository.findOne({ where: { firebaseUID } });
+    if (!user) {
+      return {isExist: false}
+    }
+    return {isExist: true, status: user.status}
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
@@ -66,5 +83,32 @@ export class UserService {
       throw new HttpException(`Error removing data from database: ${error}`, HttpStatus.INTERNAL_SERVER_ERROR
       );
     }  
+  }
+
+  async adminLogin(body: any) {
+
+    const admin = await this.adminRepository.findOne({ where: { username: body.username } })
+
+    if(!admin || admin.password != body.password) {
+      throw new HttpException("Wrong username or password",HttpStatus.BAD_REQUEST)
+    }
+
+    const payload = { username: admin.username, role: admin.role };
+
+    const token = this.jwtService.sign(payload);
+
+    return { adminToken: token, isExist: true };
+
+  }
+
+  async suspendUser(firebaseUID: any) {
+    try {
+    await this.userRepository.update({ firebaseUID }, { status: 'suspended' });
+    return true
+    }
+    catch (error) {
+      throw new HttpException(`Error suspending user`, HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 }
